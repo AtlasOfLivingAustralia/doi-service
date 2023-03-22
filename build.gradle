@@ -93,6 +93,7 @@ dependencies {
     implementation "org.grails.plugins:events"
     implementation "org.grails.plugins:hibernate5"
     implementation "org.hibernate:hibernate-jcache"
+    implementation "org.codehaus.groovy.modules.http-builder:http-builder:0.7.2"
     runtimeOnly 'org.ehcache:ehcache'
 
     implementation "org.grails.plugins:gsp"
@@ -150,6 +151,7 @@ dependencies {
     implementation 'org.grails.plugins:aws-sdk-s3:2.4.8'
     implementation 'org.javaswift:joss:0.10.4'
     implementation 'org.jsoup:jsoup:1.11.3'
+
 
     testImplementation "org.apache.httpcomponents:httpmime:4.3.3"
 }
