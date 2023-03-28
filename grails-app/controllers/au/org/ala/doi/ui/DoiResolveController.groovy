@@ -1,6 +1,7 @@
 package au.org.ala.doi.ui
 
 import au.org.ala.doi.BasicWSController
+import au.org.ala.doi.DownloadService
 import au.org.ala.doi.Doi
 import au.org.ala.doi.DoiService
 import au.org.ala.doi.storage.Storage
@@ -22,6 +23,7 @@ class DoiResolveController extends BasicWSController {
     DoiService doiService
     Storage storage
     AuthService authService
+    DownloadService downloadService
 
     protected Doi queryForResource(Serializable id) {
         String idString = id instanceof String ? id : id.toString()
@@ -56,9 +58,43 @@ class DoiResolveController extends BasicWSController {
         String order = params.get('order', 'desc')
         log.debug "myDownloads params = ${params}"
 
+        def activeDownloads
+        if (authService.userInRole('ROLE_ADMIN')) {
+            activeDownloads = downloadService.getStatuses(true).resp
+        } else {
+            activeDownloads = downloadService.getStatuses(false).resp
+        }
+
         if (userId) {
             def result = doiService.listDois(max, offset, sort, order, [active:true, userId:userId, displayTemplate:"biocache"])
-            render view: 'myDownloads', model: [dois: result, totalRecords: result.totalCount]
+            render view: 'myDownloads', model: [dois: result, totalRecords: result.totalCount, activeDownloads: activeDownloads]
+        } else {
+            render(status: "401", text: "No UserId provided - check user is logged in and page is protected by AUTH")
+        }
+    }
+
+    def myCancel() {
+        String userId = authService?.getUserId()
+        String cancelId = params.url.replaceAll('.*/','')
+
+        def activeDownloads
+        if (authService.userInRole('ROLE_ADMIN')) {
+            activeDownloads = downloadService.getStatuses(true).resp
+        } else {
+            activeDownloads = downloadService.getStatuses(false).resp
+        }
+
+        for (def user : activeDownloads) {
+            for (def download : user.value) {
+                if (cancelId == download.cancelUrl.replaceAll('.*/','')) {
+                    downloadService.cancel(cancelId)
+                    break;
+                }
+            }
+        }
+
+        if (userId) {
+            redirect(action: "myDownloads")
         } else {
             render(status: "401", text: "No UserId provided - check user is logged in and page is protected by AUTH")
         }

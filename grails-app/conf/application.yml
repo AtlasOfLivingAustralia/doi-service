@@ -168,6 +168,9 @@ security:
         enabled: true
         fallbackToLegacyKeys: true # Reset to false once legacy api keys no longer supported
 
+webservice:
+  jwt: true
+
 support:
     email: support@ala.org.au
 
@@ -217,6 +220,9 @@ doi:
     supportContact: https://www.ala.org.au/about-the-atlas/communications-centre/
 file:
     store: /data/doi-service/files
+
+biocache:
+  wsUrl: https://biocache-ws-test.ala.org.au/ws
 
 googleAnalyticsId: UA-4355440-1
 

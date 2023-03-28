@@ -69,6 +69,39 @@
                     </nav>
                 </div>
             </g:if>
+            <g:if test="${activeDownloads.size() > 0}">
+                <div class="row">
+                    <div class="col-md-12 fwtable table-responsive">
+                        <table class="table table-bordered table-striped ">
+                            <thead>
+                            <tr>
+                                <th class="col-sm-2"><g:message code="myDownloads.header.user" default="User" /></th>
+                                <th class="col-sm-1"><g:message code="myDownloads.header.status" /></th>
+                                <th class="col-sm-1"><g:message code="myDownloads.header.date" /></th>
+                                <th class="col-sm-1"><g:message code="myDownloads.header.records" /></th>
+                                <th class="col-sm-1"><g:message code="myDownloads.header.totalRecords" /></th>
+                                <th class="col-sm-1"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <g:each in="${activeDownloads}" var="userDownload">
+                                <tr><td colspan="6"></td></tr>
+                                <g:each in="${userDownload.value}" var="download">
+                                    <tr>
+                                        <td><span class="no-wrap">${userDownload.key}</span></td>
+                                        <td><span class="no-wrap">${download.status}</span></td>
+                                        <td><span class="no-wrap">${download.startDate}</span></td>
+                                        <td><g:formatNumber number="${download.records}" type="number" /></td>
+                                        <td><g:formatNumber number="${download.totalRecords}" type="number" /></td>
+                                        <td><a href="myCancel?url=${download.cancelUrl}"><g:message code="myDownloads.cancel" /></a></td>
+                                    </tr>
+                                </g:each>
+                            </g:each>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </g:if>
             <div class="row">
                 <div class="col-md-12 fwtable table-responsive">
                     <table class="table table-bordered table-striped ">
