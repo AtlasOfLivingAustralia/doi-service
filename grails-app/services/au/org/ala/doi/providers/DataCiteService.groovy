@@ -136,7 +136,7 @@ class DataCiteService extends DoiProviderService {
 
         // ResourceType
         def resourceType = new DataCiteMetadata.ResourceType()
-        def resourceTypeGeneral = ResourceType.fromValue(metadata.resourceType as String)
+        def resourceTypeGeneral = org.gbif.doi.metadata.datacite.ResourceType.fromValue(metadata.resourceType as String)
         resourceType.setValue(metadata.resourceText as String)
         resourceType.setResourceTypeGeneral(resourceTypeGeneral)
         dcMetadata.setResourceType(resourceType)
