@@ -50,6 +50,8 @@ class UrlMappings {
         get "/doi"(controller: "doiResolve", action: "index")
         head "/myDownloads"(controller: "doiResolve", action: "myDownloads")
         get "/myDownloads"(controller: "doiResolve", action: "myDownloads")
+        head "/myCancel"(controller: "doiResolve", action: "myCancel")
+        get "/myCancel"(controller: "doiResolve", action: "myCancel")
         head "/"(controller: "doiResolve", action: "index")
         get "/"(controller: "doiResolve", action: "index")
         get "/admin"(controller:'admin', action:"index")
