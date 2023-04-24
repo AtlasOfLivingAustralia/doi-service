@@ -54,7 +54,7 @@ if(inplace) {
     }
 }
 
-def alaSecurityLibsVersion='6.0.0-SNAPSHOT'
+def alaSecurityLibsVersion='6.0.0'
 
 def elasticsearchVersion = '7.3.0'
 ext['elasticsearch.version'] = elasticsearchVersion
