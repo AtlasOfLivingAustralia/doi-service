@@ -14,7 +14,8 @@ class DownloadService {
             url = Holders.config.biocache.wsUrl + '/occurrences/offline/status'
         }
 
-        webService.get(url)
+       def  response = webService.get(url)
+        return  response
     }
 
     void cancel(String cancelId) {
