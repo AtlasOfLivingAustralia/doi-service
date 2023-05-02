@@ -17,7 +17,7 @@ plugins {
     id "com.gorylenko.gradle-git-properties" version "2.4.1"
 }
 
-version "2.0.2-SNAPSHOT"
+version "2.1.0-SNAPSHOT"
 group "au.org.ala"
 
 apply plugin:"eclipse"
@@ -53,8 +53,6 @@ if(inplace) {
         }
     }
 }
-
-def alaSecurityLibsVersion='6.0.0'
 
 def elasticsearchVersion = '7.3.0'
 ext['elasticsearch.version'] = elasticsearchVersion
