@@ -19,7 +19,7 @@
     </div>
     <div class="col-md-12"><b><g:message code="doi.page.file" /></b> <a href="${request.contextPath}/doi/${doi.uuid}/download"> ${doi.filename?:message(code:"doi.page.download.file.not.found")}</a></div><br>
     <div class="col-md-12"><g:message code="doi.page.record.count" args="[g.formatNumber(number:doi.applicationMetadata?.recordCount, type:'number')]"/></div>
-    <div class="col-md-8 col-sm-12"><b><g:message code="doi.page.search.query" /></b> <doi:formatSearchQuery searchUrl="${doi.applicationMetadata?.searchUrl}" /> </div>
+    <div class="col-md-8 col-sm-12"><b><g:message code="doi.page.search.query" /></b> <doi:formatSearchQuery searchUrl="${doi.applicationMetadata?.searchUrl}" dqFilter="${doi.applicationMetadata?.qualityFilters}"/> </div>
     <div class="col-md-12"><b><g:message code="doi.page.search.url" /></b> <a href="${doi.applicationMetadata?.searchUrl}"><doi:sanitiseRawContent content="${doi.applicationMetadata?.queryTitle?.encodeAsRaw()}" /></a></div>
     <g:set var="enabled" value="${doi.applicationMetadata?.qualityFilters != null && doi.applicationMetadata?.qualityFilters.size() > 0}"/>
     <div class="col-md-12">
