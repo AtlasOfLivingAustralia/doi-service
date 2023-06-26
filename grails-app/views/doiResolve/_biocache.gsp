@@ -28,15 +28,13 @@
             <table class="table table-condensed table-striped">
                 <thead>
                 <tr>
-                    <th><g:message code="doi.page.header.name" /></th>
                     <th><g:message code="doi.page.header.filter" /></th>
                 </tr>
                 </thead>
                 <tbody>
                 <g:each in="${doi.applicationMetadata?.qualityFilters}" var="qf">
                     <tr>
-                        <td>${qf.name}</td>
-                        <td>${qf.filter}</td>
+                        <td>${qf.label}</td>
                     </tr>
                 </g:each>
                 </tbody>
