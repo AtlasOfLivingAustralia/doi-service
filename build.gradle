@@ -54,8 +54,6 @@ if(inplace) {
     }
 }
 
-def alaSecurityLibsVersion='6.0.0-SNAPSHOT'
-
 def elasticsearchVersion = '7.3.0'
 ext['elasticsearch.version'] = elasticsearchVersion
 // To prevent: http://hg.openjdk.java.net/jdk8/jdk8/jaxp/rev/5c84d4a878f1
