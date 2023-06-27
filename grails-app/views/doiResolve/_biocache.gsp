@@ -28,6 +28,7 @@
             <table class="table table-condensed table-striped">
                 <thead>
                 <tr>
+                    <th><g:message code="doi.page.header.name" /></th>
                     <th><g:message code="doi.page.header.filter" /></th>
                 </tr>
                 </thead>
@@ -35,6 +36,7 @@
                 <g:each in="${doi.applicationMetadata?.qualityFilters}" var="qf">
                     <tr>
                         <td>${qf.label}</td>
+                        <td>${qf.filter}</td>
                     </tr>
                 </g:each>
                 </tbody>
