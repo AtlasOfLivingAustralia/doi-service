@@ -30,6 +30,7 @@ class DoiService extends BaseDataAccessService {
     Storage storage
     EmailService emailService
     DoiSearchService doiSearchService
+    DataQualityService dataQualityService
 
 //    @Value('${doi.service.mock:false}')
     boolean isUseMockDoiService() {
@@ -180,13 +181,35 @@ class DoiService extends BaseDataAccessService {
     Doi findByUuid(String uuid) {
         checkArgument uuid
 
-        Doi.findByUuid(UUID.fromString(uuid))
+        Doi result = Doi.findByUuid(UUID.fromString(uuid))
+
+        appendDqInfo(result)
+
+        result
     }
 
     Doi findByDoi(String doi) {
         checkArgument doi
 
-        Doi.findByDoi(doi)
+        Doi result = Doi.findByDoi(doi)
+
+        appendDqInfo(result)
+
+        result
+    }
+
+    def appendDqInfo(Doi doi) {
+        def qualityFilters = doi.applicationMetadata?.qualityFilters
+
+        if (qualityFilters) {
+            for (def filter in qualityFilters) {
+                def category = dataQualityService.getFilterDescriptions().get(filter.name)
+                if (category) {
+                    filter.put('description', category.description)
+                    filter.put('label', category.name)
+                }
+            }
+        }
     }
 
     @ReadOnly

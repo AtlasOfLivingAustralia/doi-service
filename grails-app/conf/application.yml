@@ -224,6 +224,9 @@ file:
 biocache:
   wsUrl: https://biocache-ws-test.ala.org.au/ws
 
+dqservice:
+  url: https://data-quality-service.ala.org.au
+
 googleAnalyticsId: UA-4355440-1
 
 elasticSearch:
