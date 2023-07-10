@@ -49,6 +49,7 @@ class DoiTagLib {
     def formatSearchQuery = { attrs, body ->
         def searchUrl = attrs.searchUrl
         def queryTitle = attrs.queryTitle
+        def dqFilter = attrs.dqFilter
         def content = ""
 
         try {
@@ -65,18 +66,27 @@ class DoiTagLib {
                 for (NameValuePair param : params) {
                     if (param.name && param.value) {
                         String paramValue = ((param.name == "q" && queryTitle) ? queryTitle : param.value)
-                        paramValue = paramValue.replaceAll(/ (AND|OR) /, " <span class=\"boolean-op\">\$1</span> ")
-                        content += "<li><strong>${g.message code: "doi.param.name.${param.name}", default: "${param.name}"}:</strong>&nbsp;"
-                        List fieldItems = paramValue.tokenize(':')
-                        log.debug "fieldItems = ${fieldItems.size()}"
-                        if (fieldItems.size() == 2 && paramValue != "*:*") {
-                            // Attempt to substitute i18n labels where possible
-                            content += "${g.message code: "facet.${fieldItems[0]}", default: "${fieldItems[0]}"}:"
-                            log.debug "if: i18n: \"facet.${fieldItems[0]}\" || ${g.message(code: "facet.${fieldItems[0]}")}"
-                            content += "${g.message code: "${fieldItems[0]}.${fieldItems[1]}", default: "${fieldItems[1]}"}</li>"
-                        } else {
-                            content += "${g.message code: "doi.param.value.${paramValue}", default: "${paramValue}"}</li>"
-                            log.debug "else: i18n: \"doi.param.value.${paramValue}\" || ${g.message(code: "doi.param.value.${paramValue}")}"
+                        boolean include = true
+                        for (def fq : dqFilter) {
+                            if (fq.filter == paramValue) {
+                                include = false
+                            }
+                        }
+                        if (include && param.name != 'disableAllQualityFilters') {
+                            paramValue = paramValue.replaceAll(/ (AND|OR) /, " <span class=\"boolean-op\">\$1</span> ")
+                            content += "<li><strong>${g.message code: "doi.param.name.${param.name}", default: "${param.name}"}:</strong>&nbsp;"
+                            List fieldItems = paramValue.tokenize(':')
+                            log.debug "fieldItems = ${fieldItems.size()}"
+
+                            if (fieldItems.size() == 2 && paramValue != "*:*") {
+                                // Attempt to substitute i18n labels where possible
+                                content += "${g.message code: "facet.${fieldItems[0]}", default: "${fieldItems[0]}"}:"
+                                log.debug "if: i18n: \"facet.${fieldItems[0]}\" || ${g.message(code: "facet.${fieldItems[0]}")}"
+                                content += "${g.message code: "${fieldItems[0]}.${fieldItems[1]}", default: "${fieldItems[1]}"}</li>"
+                            } else {
+                                content += "${g.message code: "doi.param.value.${paramValue}", default: "${paramValue}"}</li>"
+                                log.debug "else: i18n: \"doi.param.value.${paramValue}\" || ${g.message(code: "doi.param.value.${paramValue}")}"
+                            }
                         }
                     }
 

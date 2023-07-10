@@ -1,6 +1,7 @@
 package au.org.ala.doi
 
 import au.org.ala.doi.util.DoiProvider
+import au.org.ala.ws.security.authenticator.AlaApiKeyAuthenticator
 import com.google.common.io.BaseEncoding
 import grails.converters.JSON
 import org.grails.web.converters.marshaller.ObjectMarshaller
@@ -8,6 +9,8 @@ import org.grails.web.converters.marshaller.json.GenericJavaBeanMarshaller
 
 class BootStrap {
     def messageSource
+    def userDetailsClient
+    def getAlaApiKeyClient
 
     def init = { servletContext ->
 
@@ -54,6 +57,11 @@ class BootStrap {
 //            BaseEncoding.base16().encode(bytes)
 //        }
 
+        // dependency is not injected, do so manually
+        def authenticator = getAlaApiKeyClient.getAuthenticator()
+        if (authenticator instanceof AlaApiKeyAuthenticator) {
+            authenticator.setUserDetailsClient(userDetailsClient)
+        }
 
     }
     def destroy = {
