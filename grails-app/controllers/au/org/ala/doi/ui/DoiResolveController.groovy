@@ -121,8 +121,10 @@ class DoiResolveController extends BasicWSController {
     def download(@NotNull @UUID String id) {
         Doi doi = doiService.findByUuid(id)
 
+        boolean permitted = true
         if (!doi) {
             notFound "No doi was found for ${id}"
+            return
         } else {
 
             // if the DOI is restricted, let's drill down to see if the user trying to access the file should be allowed
@@ -134,29 +136,34 @@ class DoiResolveController extends BasicWSController {
                     // This method will end up being called again but with an authenticated user.
                     redirect uri: authService.loginUrl( "/doi/${doi.uuid}")
                     log.debug("File for DOI ${doi.doi} (uuid = ${doi.uuid}) is not public, user needs to login to see if he is permitted to download it.")
+                    permitted = false
                     return
                 } else if(requestorId != doi.userId) {
                     // must be authorised for all roles
+
                     doi.authorisedRoles.each {
                         if (!authService.userInRole(it)) {
                             render view: "unauthorisedDownload", model: [doi: doi] //TODO
                             log.debug("File for DOI ${doi.doi} (uuid = ${doi.uuid}) is not public and user ${requestorId} does not have the apropriate permissions to access it")
+                            permitted = false
                             return
                         }
                     }
                 }
             }
 
-            ByteSource byteSource = storage.getFileForDoi(doi)
-            if (byteSource) {
-                response.setContentType(doi.contentType)
-                response.setHeader("Content-disposition", "attachment;filename=${doi.filename}")
-                byteSource.openStream().withStream {
-                    response.outputStream << it
+            if (permitted) {
+                ByteSource byteSource = storage.getFileForDoi(doi)
+                if (byteSource) {
+                    response.setContentType(doi.contentType)
+                    response.setHeader("Content-disposition", "attachment;filename=${doi.filename}")
+                    byteSource.openStream().withStream {
+                        response.outputStream << it
+                    }
+                    response.outputStream.flush()
+                } else {
+                    notFound "No file was found for DOI ${doi.doi} (uuid = ${doi.uuid})"
                 }
-                response.outputStream.flush()
-            } else {
-                notFound "No file was found for DOI ${doi.doi} (uuid = ${doi.uuid})"
             }
         }
     }
