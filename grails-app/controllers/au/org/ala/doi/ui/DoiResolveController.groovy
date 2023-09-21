@@ -138,7 +138,7 @@ class DoiResolveController extends BasicWSController {
                 } else if(requestorId != doi.userId) {
                     // must be authorised for all roles
                     doi.authorisedRoles.each {
-                        if (authService.userInRole(it)) {
+                        if (!authService.userInRole(it)) {
                             render view: "unauthorisedDownload", model: [doi: doi] //TODO
                             log.debug("File for DOI ${doi.doi} (uuid = ${doi.uuid}) is not public and user ${requestorId} does not have the apropriate permissions to access it")
                             return
