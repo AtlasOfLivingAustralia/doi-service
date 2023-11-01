@@ -59,10 +59,10 @@ class UrlMappings {
         post "/admin/createDoi"(controller:'admin', action: "createDoi")
         get "/admin/indexAll"(controller:'admin', action:"indexAll")
 
-        "500" view: "/error"
-        "400" view: "/error"
-        "404" view: "/notfound"
-        "403" view: "/unauthorised"
-        "401" view: "/unauthorised"
+        "500" (controller: 'error', action: 'error')
+        "400" (controller: 'error', action: 'error')
+        "404" (controller: 'error', action: 'error')
+        "403" (controller: 'error', action: 'error')
+        "401" (controller: 'error', action: 'error')
     }
 }

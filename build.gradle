@@ -1,33 +1,22 @@
-buildscript {
-    repositories {
-        mavenLocal()
-        maven { url "https://nexus.ala.org.au/content/groups/public/" }
-        maven { url "https://repo.grails.org/grails/core" }
-    }
-    dependencies {
-        classpath "org.grails:grails-gradle-plugin:$grailsVersion"
-        classpath "org.grails.plugins:hibernate5:${gormVersion}"
-        classpath "com.bertramlabs.plugins:asset-pipeline-gradle:3.4.6"
-        classpath "gradle.plugin.com.github.erdi.webdriver-binaries:webdriver-binaries-gradle-plugin:$webdriverBinariesVersion"
-        classpath 'org.grails.plugins:database-migration:4.2.0'
-    }
-}
-
 plugins {
+    id "groovy"
+    id "org.grails.grails-gsp"
+    id "org.grails.grails-web"
+    id "com.github.erdi.webdriver-binaries" version "3.0"
+    id "war"
+    id "idea"
+    id "com.bertramlabs.asset-pipeline"
+    id "application"
+    id "eclipse"
+
     id "com.gorylenko.gradle-git-properties" version "2.4.1"
+
+    id "maven-publish"
 }
 
-version "3.1.0-SNAPSHOT"
+version "4.0.0-SNAPSHOT"
 group "au.org.ala"
 
-apply plugin:"eclipse"
-apply plugin:"idea"
-apply plugin:"war"
-apply plugin:"org.grails.grails-web"
-apply plugin:"com.github.erdi.webdriver-binaries"
-apply plugin:"com.bertramlabs.asset-pipeline"
-apply plugin:"org.grails.grails-gsp"
-apply plugin:"maven-publish"
 
 sourceCompatibility = 1.11
 targetCompatibility = 1.11
@@ -110,12 +99,12 @@ dependencies {
     testImplementation "org.grails:grails-gorm-testing-support"
     testImplementation "org.mockito:mockito-core"
     testImplementation "org.grails:grails-web-testing-support"
-    testImplementation "org.grails.plugins:geb"
-    testImplementation "org.seleniumhq.selenium:selenium-remote-driver:$seleniumVersion"
-    testImplementation "org.seleniumhq.selenium:selenium-api:$seleniumVersion"
-    testImplementation "org.seleniumhq.selenium:selenium-support:$seleniumVersion"
-    testImplementation "org.seleniumhq.selenium:selenium-chrome-driver:$seleniumVersion"
-    testImplementation "org.seleniumhq.selenium:selenium-firefox-driver:$seleniumVersion"
+//    testImplementation "org.grails.plugins:geb"
+//    testImplementation "org.seleniumhq.selenium:selenium-remote-driver:$seleniumVersion"
+//    testImplementation "org.seleniumhq.selenium:selenium-api:$seleniumVersion"
+//    testImplementation "org.seleniumhq.selenium:selenium-support:$seleniumVersion"
+//    testImplementation "org.seleniumhq.selenium:selenium-chrome-driver:$seleniumVersion"
+//    testImplementation "org.seleniumhq.selenium:selenium-firefox-driver:$seleniumVersion"
 
     implementation "org.grails.plugins:converters"
     runtimeOnly 'org.codehaus.groovy:groovy-dateutil'
@@ -123,7 +112,7 @@ dependencies {
 
     implementation 'org.grails.plugins:elasticsearch:3.0.0-RC1'
 
-    implementation group: 'org.grails.plugins', name: 'ala-bootstrap3', version: '4.3.0', changing: true
+    implementation group: 'org.grails.plugins', name: 'ala-bootstrap3', version: '4.4.0', changing: true
     implementation group: 'org.grails.plugins', name: 'ala-admin-plugin', version: '2.3.0', changing: true
 
     implementation "org.grails.plugins:ala-auth:$alaSecurityLibsVersion"
@@ -181,25 +170,20 @@ bootRun {
 bootWar {
     launchScript()
     classifier = 'exec'
+    dependsOn(compileGroovyPages)
 }
 
-tasks.withType(GroovyCompile) {
-    configure(groovyOptions) {
-        forkOptions.jvmArgs = ['-Xmx1024m']
-    }
+war {
+    dependsOn(compileGroovyPages)
 }
 
-tasks.withType(Test) {
-    systemProperty "geb.env", System.getProperty('geb.env')
-    systemProperty "geb.build.reportsDir", reporting.file("geb/integrationTest")
-    systemProperty "webdriver.chrome.driver", System.getProperty('webdriver.chrome.driver')
-    systemProperty "webdriver.gecko.driver", System.getProperty('webdriver.gecko.driver')
+java {
+    sourceCompatibility = JavaVersion.toVersion("11")
 }
 
 assets {
     minifyJs = true
     minifyCss = true
-//    includes = ["fonts/*"]
 }
 
 
