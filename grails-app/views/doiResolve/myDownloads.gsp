@@ -16,7 +16,7 @@
     <div class="row">
         <h3 class="col-md-12"><g:message code="download.mydownloads.pageTitle"/></h3>
     </div>
-    <g:if test="${activeDownloads.size() > 0}">
+    <g:if test="${activeDownloads?.size() > 0}">
         <div class="row">
             <div class="col-md-12 fwtable table-responsive">
                 <table class="table table-bordered table-striped ">
@@ -122,8 +122,8 @@
                                        <br>
                                        <g:message code="myDownloads.field.file" /> <a href="${request.contextPath}/doi/${doi.uuid}/download"> ${doi.filename}</a>
                                    </td>
-                                   <td><span class="no-wrap"><g:formatDate date="${doi.dateMinted}" format="yyyy-MM-dd"/></span>
-                                       <span class="no-wrap"><g:formatDate date="${doi.dateMinted}" format="h:mm a"/></span></td>
+                                   <td><span class="no-wrap"><g:formatDate date="${doi.dateMinted}" format="${message(code:'doi.page.date.format')}"/></span>
+                                       <span class="no-wrap"><g:formatDate date="${doi.dateMinted}" format="${message(code:'doi.page.time.format')}"/></span></td>
                                    %{--<td>${doi.title}</td>--}%
                                    <td><g:formatNumber number="${doi.applicationMetadata?.recordCount}" type="number" /></td>
                                    <td><g:formatNumber number="${doi.applicationMetadata?.datasets?.size()}" type="number" /></td>
