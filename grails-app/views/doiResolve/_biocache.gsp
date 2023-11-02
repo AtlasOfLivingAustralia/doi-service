@@ -1,4 +1,4 @@
-<%@ page import="java.time.ZoneId" contentType="text/html;charset=UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -35,7 +35,7 @@
                 <tbody>
                 <g:each in="${doi.applicationMetadata?.qualityFilters}" var="qf">
                     <tr>
-                        <td>${qf.label}</td>
+                        <td>${qf.description}</td>
                         <td>${qf.filter}</td>
                     </tr>
                 </g:each>
@@ -55,14 +55,14 @@
             </ul>
         </g:if>
     </div>
-    <div class="col-md-12"><b><g:message code="doi.page.authors" /></b> ${doi.authors}</div>
+%{--    <div class="col-md-12"><b><g:message code="doi.page.authors" /></b> ${doi.authors}</div>--}%
     <div class="col-md-12"><b><g:message code="doi.page.date.created" /></b> <g:formatDate date="${doi.dateCreated}" format="${message(code:'doi.page.date.format')}"/>&nbsp;<g:formatDate date="${doi.dateCreated}" format="${message(code:'doi.page.time.format')}" /></div>
     <div class="col-md-12"><b><g:message code="doi.page.citation.url" /></b> <a href="${grailsApplication.config.doi.resolverUrl}${doi.doi}">${grailsApplication.config.doi.resolverUrl}${doi.doi}</a></div><br>
 
 </div>
     <div class="row">
         <div class="fwtable table-responsive col-md-12">
-            <p><b><g:message code="doi.page.datasets" /> (<g:formatNumber number="${doi.applicationMetadata?.datasets?.size()}" type="number" />)</b></p>
+            <p><b><g:message code="doi.page.datasets" /> (<g:formatNumber number="${doi.applicationMetadata?.datasets?.count{it?.uid.startsWith('dr')}}" type="number" />)</b></p>
             <table class="table table-bordered table-striped ">
                 <thead>
                 <tr>
@@ -73,11 +73,13 @@
                 </thead>
                 <tbody>
                 <g:each in="${doi.applicationMetadata?.datasets?.sort{a,b -> b.count as Integer <=> a.count as Integer}}" var="dataset">
-                    <tr>
-                        <td class="col-xs-4"><a href="${grailsApplication?.config.collections.baseUrl}/public/show/${dataset.uid}">${dataset.name}</a></td>
-                        <td class="col-xs-3">${dataset.licence}</td>
-                        <td class="col-xs-1" align="center"><g:formatNumber number="${dataset.count}" type="number" /></td>
-                    </tr>
+                    <g:if test="${dataset?.uid.startsWith('dr')}">
+                        <tr>
+                            <td class="col-xs-4"><a href="${grailsApplication?.config.collections.baseUrl}/public/show/${dataset.uid}">${dataset.name}</a></td>
+                            <td class="col-xs-3">${dataset.licence}</td>
+                            <td class="col-xs-1" align="center"><g:formatNumber number="${dataset.count}" type="number" /></td>
+                        </tr>
+                    </g:if>
                 </g:each>
                 </tbody>
             </table>
