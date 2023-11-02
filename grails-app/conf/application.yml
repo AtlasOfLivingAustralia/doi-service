@@ -261,6 +261,10 @@ openapi:
           scopes:
             doi/write: Update a DOI record
 
+s3:
+  temporaryurl:
+    duration: 6 # hours
+
 ---
 hibernate:
     allow_update_outside_transaction: true # Hibernate 5 made transactions required to flush changes, set to true for backwards compat but should be set to false and bugs fixed in the future

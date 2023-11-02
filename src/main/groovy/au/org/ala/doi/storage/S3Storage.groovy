@@ -1,14 +1,17 @@
 package au.org.ala.doi.storage
 
 import au.org.ala.doi.Doi
+import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.Headers
 import com.amazonaws.services.s3.model.CannedAccessControlList
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.google.common.hash.Hashing
 import com.google.common.hash.HashingInputStream
 import com.google.common.io.ByteSource
 import com.google.common.io.ByteStreams
 import grails.plugin.awssdk.s3.AmazonS3Service
+import org.apache.commons.lang.time.DateUtils
 import org.springframework.web.multipart.MultipartFile
 
 import static au.org.ala.doi.util.StateAssertions.checkArgument
@@ -71,5 +74,14 @@ class S3Storage extends BaseStorage {
         "${doi.uuid}/${doi.filename}"
     }
 
+    String generatePresignedURL(Doi doi, Integer duration) {
+        def key = keyForDoi(doi)
+        def exists = amazonS3Service.exists(key)
+        if (exists) {
+            amazonS3Service.generatePresignedUrl(amazonS3Service.defaultBucketName, key, DateUtils.addHours(new Date(), duration))
+        } else {
+            null
+        }
+    }
 }
 

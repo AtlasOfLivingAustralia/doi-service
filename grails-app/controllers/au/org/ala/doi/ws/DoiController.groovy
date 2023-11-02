@@ -9,6 +9,7 @@ import au.org.ala.doi.SearchDoisCommand
 import au.org.ala.doi.exceptions.DoiNotFoundException
 import au.org.ala.doi.exceptions.DoiUpdateException
 import au.org.ala.doi.exceptions.DoiValidationException
+import au.org.ala.doi.storage.S3Storage
 import au.org.ala.doi.storage.Storage
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.google.common.io.ByteSource
@@ -495,16 +496,26 @@ You can use the template below to populate the ANDS providerMetadata:
             response.addHeader('Link', createLink(uri: "/doi/${doi.uuid}/download") + '; rel="alternate"')
             notAuthorised "Sensitive data files can only be downloaded via DOI Service GUI for authenticated users only"
         } else {
-            ByteSource byteSource = storage.getFileForDoi(doi)
-            if (byteSource) {
-                response.setContentType(doi.contentType)
-                response.setHeader("Content-disposition", "attachment;filename=${doi.filename}")
-                byteSource.openStream().withStream {
-                    response.outputStream << it
+            if (storage instanceof S3Storage) {
+                String url = storage.generatePresignedURL(doi, grailsApplication.config.getProperty('s3.temporaryurl.duration', Integer.class))
+                if (url) {
+                    response.status = 302
+                    response.addHeader('Location', url)
+                } else {
+                    notFound "No file was found for DOI ${doi.doi} (uuid = ${doi.uuid})"
                 }
-                response.outputStream.flush()
             } else {
-                notFound "No file was found for DOI ${doi.doi} (uuid = ${doi.uuid})"
+                ByteSource byteSource = storage.getFileForDoi(doi)
+                if (byteSource) {
+                    response.setContentType(doi.contentType)
+                    response.setHeader("Content-disposition", "attachment;filename=${doi.filename}")
+                    byteSource.openStream().withStream {
+                        response.outputStream << it
+                    }
+                    response.outputStream.flush()
+                } else {
+                    notFound "No file was found for DOI ${doi.doi} (uuid = ${doi.uuid})"
+                }
             }
         }
     }

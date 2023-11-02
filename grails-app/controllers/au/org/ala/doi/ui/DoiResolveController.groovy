@@ -4,6 +4,7 @@ import au.org.ala.doi.BasicWSController
 import au.org.ala.doi.DownloadService
 import au.org.ala.doi.Doi
 import au.org.ala.doi.DoiService
+import au.org.ala.doi.storage.S3Storage
 import au.org.ala.doi.storage.Storage
 import au.org.ala.web.AuthService
 import au.org.ala.web.UserDetails
@@ -153,16 +154,26 @@ class DoiResolveController extends BasicWSController {
             }
 
             if (permitted) {
-                ByteSource byteSource = storage.getFileForDoi(doi)
-                if (byteSource) {
-                    response.setContentType(doi.contentType)
-                    response.setHeader("Content-disposition", "attachment;filename=${doi.filename}")
-                    byteSource.openStream().withStream {
-                        response.outputStream << it
+                if (storage instanceof S3Storage) {
+                    String url = storage.generatePresignedURL(doi, grailsApplication.config.getProperty('s3.temporaryurl.duration', Integer.class))
+                    if (url) {
+                        response.status = 302
+                        response.addHeader('Location', url)
+                    } else {
+                        notFound "No file was found for DOI ${doi.doi} (uuid = ${doi.uuid})"
                     }
-                    response.outputStream.flush()
                 } else {
-                    notFound "No file was found for DOI ${doi.doi} (uuid = ${doi.uuid})"
+                    ByteSource byteSource = storage.getFileForDoi(doi)
+                    if (byteSource) {
+                        response.setContentType(doi.contentType)
+                        response.setHeader("Content-disposition", "attachment;filename=${doi.filename}")
+                        byteSource.openStream().withStream {
+                            response.outputStream << it
+                        }
+                        response.outputStream.flush()
+                    } else {
+                        notFound "No file was found for DOI ${doi.doi} (uuid = ${doi.uuid})"
+                    }
                 }
             }
         }
