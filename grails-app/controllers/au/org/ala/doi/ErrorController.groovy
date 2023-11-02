@@ -26,7 +26,7 @@ class ErrorController {
             json {
                 response.contentType = ContentType.APPLICATION_JSON
 
-                def result = [message: request.'javax.servlet.error.message']
+                def result = [message: request.'javax.servlet.error.message'?:'']
                 render result as JSON
             }
         }

@@ -199,7 +199,7 @@ class DoiService extends BaseDataAccessService {
     }
 
     def appendDqInfo(Doi doi) {
-        def qualityFilters = doi.applicationMetadata?.qualityFilters
+        def qualityFilters = doi?.applicationMetadata?.qualityFilters
 
         if (qualityFilters) {
             for (def filter in qualityFilters) {
