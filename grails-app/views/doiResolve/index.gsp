@@ -13,15 +13,17 @@
     <![endif]-->
 
     %{-- Google Analytics --}%
-    <script>
-        window.ga = window.ga || function () {
-                    (ga.q = ga.q || []).push(arguments)
-                };
-        ga.l = +new Date;
-        ga('create', '${grailsApplication.config.googleAnalyticsId}', 'auto');
-        ga('send', 'pageview');
-    </script>
-    <script async src='//www.google-analytics.com/analytics.js'></script>
+    <g:if test="${grailsApplication.config.googleAnalyticsId}">
+        <script>
+            window.ga = window.ga || function () {
+                        (ga.q = ga.q || []).push(arguments)
+                    };
+            ga.l = +new Date;
+            ga('create', '${grailsApplication.config.googleAnalyticsId}', 'auto');
+            ga('send', 'pageview');
+        </script>
+        <script async src='//www.google-analytics.com/analytics.js'></script>
+    </g:if>
     %{--End Google Analytics--}%
 
     <asset:stylesheet src="doi.css"/>
@@ -97,7 +99,7 @@
                                                 </h4>
 
                                                 <div class="padding-bottom-10"><a href="https://doi.org/${doi.doi}" type="button" class="doi doi-sm"><span><g:message code="index.item.doi" /></span><span>${doi.doi}</span></a></div>
-                                                <div class="padding-bottom-10"><strong><g:message code="index.item.created" /></strong> ${doi.dateMinted}</div>
+                                                <div class="padding-bottom-10"><strong><g:message code="index.item.created" /></strong> <g:formatDate date="${doi.dateMinted}" format="${message(code:'doi.page.date.format')}"/>&nbsp;<g:formatDate date="${doi.dateMinted}" format="${message(code:'doi.page.time.format')}" /></div>
                                                 <div class="padding-bottom-10"><strong><g:message code="index.item.author" /></strong> ${doi.authors}</div>
                                                 <div class="padding-bottom-20">
                                                     ${doi.description}

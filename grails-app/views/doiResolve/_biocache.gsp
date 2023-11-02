@@ -56,7 +56,7 @@
         </g:if>
     </div>
 %{--    <div class="col-md-12"><b><g:message code="doi.page.authors" /></b> ${doi.authors}</div>--}%
-    <div class="col-md-12"><b><g:message code="doi.page.date.created" /></b> <g:formatDate date="${doi.dateCreated}" format="yyyy-MM-dd h:mm a"/></div>
+    <div class="col-md-12"><b><g:message code="doi.page.date.created" /></b> <g:formatDate date="${doi.dateCreated}" format="${message(code:'doi.page.date.format')}"/>&nbsp;<g:formatDate date="${doi.dateCreated}" format="${message(code:'doi.page.time.format')}" /></div>
     <div class="col-md-12"><b><g:message code="doi.page.citation.url" /></b> <a href="${grailsApplication.config.doi.resolverUrl}${doi.doi}">${grailsApplication.config.doi.resolverUrl}${doi.doi}</a></div><br>
 
 </div>

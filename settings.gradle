@@ -1,3 +1,23 @@
+pluginManagement {
+    repositories {
+        mavenLocal()
+        maven { url "https://nexus.ala.org.au/content/groups/public/" }
+        maven { url "https://repo.grails.org/grails/core/" }
+        gradlePluginPortal()
+    }
+    plugins {
+        id "org.grails.grails-web" version "6.0.0"
+        id "org.grails.grails-gsp" version "6.0.0"
+        id "com.bertramlabs.asset-pipeline" version "4.3.0"
+        id "org.grails.grails-gradle-plugin" version "$grailsVersion"
+        id "org.grails.plugins.hibernate5" version "${gormVersion}"
+        id "gradle.plugin.com.github.erdi.webdriver-binaries.webdriver-binaries-gradle-plugin" version "$webdriverBinariesVersion"
+        id "com.bertramlabs.plugins.asset-pipeline-gradle" version "3.4.6"
+        id 'org.grails.plugins.database-migration' version '4.2.0'
+    }
+}
+
+
 rootProject.name = 'doi-service'
 
 // Inplace plugin config

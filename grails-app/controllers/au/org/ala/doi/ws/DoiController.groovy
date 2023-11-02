@@ -4,12 +4,12 @@ import au.ala.org.ws.security.RequireApiKey
 import au.ala.org.ws.security.SkipApiKeyCheck
 import au.org.ala.doi.BasicWSController
 import au.org.ala.doi.DoiSearchService
-import au.org.ala.doi.MintRequest
 import au.org.ala.doi.MintResponse
 import au.org.ala.doi.SearchDoisCommand
 import au.org.ala.doi.exceptions.DoiNotFoundException
 import au.org.ala.doi.exceptions.DoiUpdateException
 import au.org.ala.doi.exceptions.DoiValidationException
+import au.org.ala.doi.storage.S3Storage
 import au.org.ala.doi.storage.Storage
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.google.common.io.ByteSource
@@ -102,12 +102,65 @@ class DoiController extends BasicWSController {
             description = "Mint / Register / Reserve a DOI. Required scopes: 'doi/write'.",
             method = "POST",
             requestBody = @RequestBody(
-                    description = "JSON request body.  The metadata for the mint request, may include a fileUrl that this service will fetch and use as the file for the DOI.  Provider metadata is provider specific",
+                    description = """
+JSON request body. The metadata for the mint request, may include a fileUrl that this service will fetch and use as the file for the DOI. Provider metadata is provider specific.
+<pre>
+{
+    provider: "ANDS", // the doi provider to use; DATACITE or ANDS
+    applicationUrl: "http://....", // the url to the relevant page on the source application. This is NOT the landing page: it is used to provide a link ON the landing page back to the original source of the publication/data/etc for the DOI.
+    providerMetadata: { // the provider-specific metadata to be sent with the DOI minting request
+        ...
+    },
+    title: "...", // title to be displayed on the landing page
+    authors: "...", // author(s) to be displayed on the landing page
+    description: "...", // description to be displayed on the landing page
+    // the following are optional
+    fileUrl: "http://....", // the url to use to download the file for the DOI (use this, or send the file as a multipart request)
+    customLandingPageUrl: "http://...", // an application-specific landing page that you want the DOI to resolve to. If not provided, the default ALA-DOI landing page will be used.
+    applicationMetadata: { // any application-specific metadata you want to display on the landing page in ALA-DOI
+        ...
+    }
+}
+</pre>
+
+You can use the template below to populate the ANDS providerMetadata:
+<pre>
+{
+    "authors" : [
+        "{Author}"
+    ],
+    "contributors" : [{
+            "name" : "{Contributor}",
+            "type" : "{Editor|etc}"
+        }
+    ],
+    "title" : "{Title}",
+    "subjects" : [
+        "{Subjects}"
+    ],
+    "subtitle" : "{Subtitle}",
+    "publicationYear" : {Year},
+    "createdDate" : "YYYY-MM-ddThh:mm:ssZ",
+    "descriptions" : [{
+            "text" : "{Description}",
+            "type" : "{Other|etc}"
+        }
+    ],
+    "resourceText" : "{Species information|etc}",
+    "resourceType" : "{Text|etc}",
+    "publisher" : "{Publisher}"
+}
+</pre>
+""",
                     required = true,
                     content = [
                             @Content(
                                     mediaType = 'application/json',
                                     schema = @Schema(implementation = MintRequest)
+                            ),
+                            @Content(
+                                    mediaType = 'multipart/form-data',
+                                    schema = @Schema(type = 'object') // TODO Complete this
                             )
                     ]
             ),
@@ -158,56 +211,6 @@ class DoiController extends BasicWSController {
             }
             render result as JSON, status: SC_CREATED
         }
-    }
-
-    /**
-     * Dummy method to enumerate the multipart file upload to openapi
-     */
-    @Operation(
-            summary = "Mint / Register / Reserve a DOI",
-            description = "Mint / Register / Reserve a DOI. Required scopes: 'doi/write'.",
-            method = "POST",
-//            requestBody = @RequestBody(
-//                    required = false,
-//                    description = "Multipart file upload, use image for the part name - TODO This needs properties for the multipart",
-//                    content = @Content(mediaType = "multipart/form-data", schema = @Schema(type = 'object', implementation = String, format = 'binary'))
-//            ),
-            requestBody = @RequestBody(
-                    description = "JSON request body.  The metadata for the mint request, may include a fileUrl that this service will fetch and use as the file for the DOI.  Provider metadata is provider specific",
-                    required = true,
-                    content = [
-                            @Content(
-                                    mediaType = 'multipart/form-data',
-                                    schema = @Schema(type = 'object') // TODO Complete this
-                            )
-                    ]
-            ),
-            responses = [
-                    @ApiResponse(responseCode = "201", links = [
-                            @Link(
-                                    name = 'Location',
-                                    description = 'URL for minted / registered / reserved DOI',
-                                    operationId = 'GetDoi',
-                                    parameters = [
-                                            @LinkParameter(name = 'uuid', expression = '$response.header.X-DOI-ID')
-                                    ]
-                            )],
-                            headers = [
-                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
-                            ]
-                    )
-            ],
-            security = [
-                    @SecurityRequirement(name = "openIdConnect", scopes = "doi/write")
-            ],
-            tags = ['DOI']
-    )
-    @Path("/api/doi")
-    @Produces("application/json")
-    @Consumes("application/json")
-    def upload() {
     }
 
     private static Map getJson(HttpServletRequest request) {
@@ -371,7 +374,7 @@ class DoiController extends BasicWSController {
     @Path("/api/doi/search")
     @Produces("application/json")
     @SkipApiKeyCheck
-    def search(SearchDoisCommand command) {
+    def search(@Parameter(hidden = true) SearchDoisCommand command) {
 
         if (!command.validate()) {
             respond command
@@ -493,16 +496,26 @@ class DoiController extends BasicWSController {
             response.addHeader('Link', createLink(uri: "/doi/${doi.uuid}/download") + '; rel="alternate"')
             notAuthorised "Sensitive data files can only be downloaded via DOI Service GUI for authenticated users only"
         } else {
-            ByteSource byteSource = storage.getFileForDoi(doi)
-            if (byteSource) {
-                response.setContentType(doi.contentType)
-                response.setHeader("Content-disposition", "attachment;filename=${doi.filename}")
-                byteSource.openStream().withStream {
-                    response.outputStream << it
+            if (storage instanceof S3Storage) {
+                String url = storage.generatePresignedURL(doi, grailsApplication.config.getProperty('s3.temporaryurl.duration', Integer.class))
+                if (url) {
+                    response.status = 302
+                    response.addHeader('Location', url)
+                } else {
+                    notFound "No file was found for DOI ${doi.doi} (uuid = ${doi.uuid})"
                 }
-                response.outputStream.flush()
             } else {
-                notFound "No file was found for DOI ${doi.doi} (uuid = ${doi.uuid})"
+                ByteSource byteSource = storage.getFileForDoi(doi)
+                if (byteSource) {
+                    response.setContentType(doi.contentType)
+                    response.setHeader("Content-disposition", "attachment;filename=${doi.filename}")
+                    byteSource.openStream().withStream {
+                        response.outputStream << it
+                    }
+                    response.outputStream.flush()
+                } else {
+                    notFound "No file was found for DOI ${doi.doi} (uuid = ${doi.uuid})"
+                }
             }
         }
     }
@@ -681,6 +694,22 @@ class DoiController extends BasicWSController {
         Map<String, Float> scores = [:]
         Map<String, Object[]> sort = [:]
         Map<String, Aggregation> aggregations = [:]
+    }
+
+    @JsonIgnoreProperties('metaClass')
+    static class MintRequest {
+        DoiProvider provider
+        Map providerMetadata
+        String title
+        String authors
+        String description
+        String licence
+        String applicationUrl
+        String fileUrl
+        Map applicationMetadata
+        String customLandingPageUrl
+        String userId
+
     }
 
 }

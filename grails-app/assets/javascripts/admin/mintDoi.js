@@ -27,13 +27,11 @@ $(function () {
     $('#existingDoiRadio').click(function () {
         $('#existingDoi').removeAttr("disabled");
         $('#providerMetadata').attr("disabled", "disabled");
-        $('#provider').attr("disabled", "disabled");
     });
 
     $('#newDoiRadio').click(function () {
         $('#existingDoi').attr("disabled", "disabled");
         $('#providerMetadata').removeAttr("disabled");
-        $('#provider').removeAttr("disabled");
     });
 });
 
