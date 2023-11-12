@@ -476,7 +476,8 @@ You can use the template below to populate the ANDS providerMetadata:
                                     @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
                             ]
                     ),
-                    @ApiResponse(responseCode = '404', description = 'DOI or UUID not found in this system')
+                    @ApiResponse(responseCode = '404', description = 'DOI or UUID not found in this system'),
+                    @ApiResponse(responseCode = '302', description = 'Redirect to file')
             ],
             tags = ['DOI']
     )
