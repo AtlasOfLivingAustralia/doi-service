@@ -1,13 +1,14 @@
 language: groovy
 jdk:
-  - openjdk11
+  - openjdk17
 sudo: false
 branches:
   only:
     - develop
     - master
     - f/csdm
-    - feature/grails5
+    - /^feature\/.*$/
+    - /^hotfix\/.*$/
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
   - rm -fr $HOME/.gradle/caches/*/plugin-resolution/

@@ -19,8 +19,6 @@ plugins {
     id "maven-publish"
 }
 
-sourceCompatibility = 1.11
-targetCompatibility = 1.11
 
 repositories {
     mavenLocal()
@@ -179,7 +177,8 @@ war {
 }
 
 java {
-    sourceCompatibility = JavaVersion.toVersion("11")
+    sourceCompatibility = JavaVersion.toVersion("17")
+    targetCompatibility = JavaVersion.toVersion("17")
 }
 
 assets {
@@ -189,7 +188,6 @@ assets {
 
 
 publishing {
-    targetCompatibility = 1.11
     repositories {
         maven {
             name 'Nexus'

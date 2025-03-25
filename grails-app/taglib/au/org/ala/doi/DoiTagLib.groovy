@@ -25,7 +25,7 @@ class DoiTagLib {
     static namespace = 'doi'
     static defaultEncodeAs = "raw"
 
-    static final UTF8_CHARSET =  Charset.lookup("UTF-8")
+    static final UTF8_CHARSET =  Charset.forName("UTF-8")
     static final SEPARATORS = "?;&".toCharArray()
 
     def sanitiseRawContent = { attrs ->
