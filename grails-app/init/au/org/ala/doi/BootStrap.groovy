@@ -11,6 +11,7 @@ class BootStrap {
     def messageSource
     def userDetailsClient
     def getAlaApiKeyClient
+    def grailsApplication
 
     def init = { servletContext ->
 
@@ -58,9 +59,12 @@ class BootStrap {
 //        }
 
         // dependency is not injected, do so manually
-        def authenticator = getAlaApiKeyClient.getAuthenticator()
-        if (authenticator instanceof AlaApiKeyAuthenticator) {
-            authenticator.setUserDetailsClient(userDetailsClient)
+        boolean isApiKeyEnabled = grailsApplication.config.getProperty('security.apikey.enabled', Boolean, false)
+        if (isApiKeyEnabled) {
+            def authenticator = getAlaApiKeyClient.getAuthenticator()
+            if (authenticator instanceof AlaApiKeyAuthenticator) {
+                authenticator.setUserDetailsClient(userDetailsClient)
+            }
         }
 
     }

@@ -46,6 +46,7 @@ import au.org.ala.doi.util.DoiProvider
 import au.org.ala.doi.DoiService
 import grails.converters.JSON
 
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER
 import static io.swagger.v3.oas.annotations.enums.ParameterIn.PATH
 import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
 import static javax.servlet.http.HttpServletResponse.SC_CREATED
@@ -101,6 +102,9 @@ class DoiController extends BasicWSController {
             summary = "Mint / Register / Reserve a DOI",
             description = "Mint / Register / Reserve a DOI. Required scopes: 'doi/write'.",
             method = "POST",
+            parameters = [
+                    @Parameter(name = "Authorization", in = HEADER, required = true)
+            ],
             requestBody = @RequestBody(
                     description = """
 JSON request body. The metadata for the mint request, may include a fileUrl that this service will fetch and use as the file for the DOI. Provider metadata is provider specific.
@@ -165,19 +169,21 @@ You can use the template below to populate the ANDS providerMetadata:
                     ]
             ),
             responses = [
-                    @ApiResponse(responseCode = "201", links = [
-                            @Link(
-                                    name = 'Location',
-                                    description = 'URL for minted / registered / reserved DOI',
-                                    operationId = 'GetDoi',
-                                    parameters = [
-                                            @LinkParameter(name = 'uuid', expression = '$response.header.X-DOI-ID')
-                                    ]
-                            )],
+                    @ApiResponse(responseCode = "201",
+                            description = "Success",
+                            links = [
+                                    @Link(
+                                            name = 'Location',
+                                            description = 'URL for minted / registered / reserved DOI',
+                                            operationId = 'GetDoi',
+                                            parameters = [
+                                                    @LinkParameter(name = 'uuid', expression = '$response.header.X-DOI-ID')
+                                            ]
+                                    )],
                             headers = [
-                                @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
-                                @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
-                                @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "string"))
                             ]
                     )
             ],
@@ -264,6 +270,7 @@ You can use the template below to populate the ANDS providerMetadata:
             ],
             responses = [
                     @ApiResponse( responseCode = "200",
+                            description = "Success",
                             content = [
                                     @Content(
                                             mediaType = 'application/json',
@@ -271,11 +278,11 @@ You can use the template below to populate the ANDS providerMetadata:
                                     )
                             ],
                             headers = [
-                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Link', description = 'Pagination links'),
-                                    @Header(name = 'X-Total-Count', description = 'Total count of search results available')
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Link', description = 'Pagination links', schema = @Schema(type = "string")),
+                                    @Header(name = 'X-Total-Count', description = 'Total count of search results available', schema = @Schema(type = "string"))
                             ]
                     )
             ],
@@ -354,6 +361,7 @@ You can use the template below to populate the ANDS providerMetadata:
             responses = [
                     @ApiResponse(
                             responseCode = "200",
+                            description = "Success",
                             content = [
                                     @Content(
                                             mediaType = 'application/json',
@@ -361,11 +369,11 @@ You can use the template below to populate the ANDS providerMetadata:
                                     )
                             ],
                             headers = [
-                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Link', description = 'Pagination links'),
-                                    @Header(name = 'X-Total-Count', description = 'Total count of search results available')
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Link', description = 'Pagination links', schema = @Schema(type = "string")),
+                                    @Header(name = 'X-Total-Count', description = 'Total count of search results available', schema = @Schema(type = "string"))
                             ]
                     )
             ],
@@ -416,6 +424,7 @@ You can use the template below to populate the ANDS providerMetadata:
             ],
             responses = [
                     @ApiResponse( responseCode = "200",
+                            description = "Success",
                             content = [
                                     @Content(
                                             mediaType = 'application/json',
@@ -423,9 +432,9 @@ You can use the template below to populate the ANDS providerMetadata:
                                     )
                             ],
                             headers = [
-                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "string"))
                             ]
                     ),
                     @ApiResponse(responseCode = '404', description = 'DOI or UUID not found in this system')
@@ -464,6 +473,7 @@ You can use the template below to populate the ANDS providerMetadata:
             ],
             responses = [
                     @ApiResponse(responseCode = "200",
+                            description = "Success",
                             content = [
                                     @Content(
                                             mediaType = 'application/octet-stream',
@@ -471,9 +481,9 @@ You can use the template below to populate the ANDS providerMetadata:
                                     )
                             ],
                             headers = [
-                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "string"))
                             ]
                     ),
                     @ApiResponse(responseCode = '404', description = 'DOI or UUID not found in this system'),
@@ -527,6 +537,7 @@ You can use the template below to populate the ANDS providerMetadata:
             description = "Update the stored metadata or add a file to a DOI. Required scopes: 'doi/write'.",
             parameters = [
                     @Parameter(name = "id", in = PATH, required = true, description = 'Either the DOI (encoded or unencoded) or the UUID', schema = @Schema(implementation = String)),
+                    @Parameter(name = "Authorization", in = HEADER, required = true)
             ],
             requestBody = @RequestBody(
                     description = "The values to update the DOI with.  This will patch the existing DOI object with the provided values.  Only the following values are accepted: 'providerMetadata', 'customLandingPageUrl', 'title', 'authors', 'description', 'licence', 'applicationUrl','applicationMetadata'",
@@ -538,11 +549,12 @@ You can use the template below to populate the ANDS providerMetadata:
 
             responses = [
                     @ApiResponse(responseCode = "200",
+                            description = "Success",
                             content = [@Content(mediaType = 'application/json', schema = @Schema(implementation = Doi))],
                             headers = [
-                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "string"))
                             ]
                     ),
                     @ApiResponse(responseCode = '400', description = 'Attempting to update the file when there is already an existing file'),
@@ -568,6 +580,7 @@ You can use the template below to populate the ANDS providerMetadata:
             description = "Update the stored metadata or add a file to a DOI. Required scopes: 'doi/write'.",
             parameters = [
                     @Parameter(name = "id", in = PATH, required = true, description = 'Either the DOI (encoded or unencoded) or the UUID', schema = @Schema(implementation = String)),
+                    @Parameter(name = "Authorization", in = HEADER, required = true)
             ],
             requestBody = @RequestBody(
                     description = "The values to update the DOI with.  This will patch the existing DOI object with the provided values.  Only the following values are accepted: 'providerMetadata', 'customLandingPageUrl', 'title', 'authors', 'description', 'licence', 'applicationUrl','applicationMetadata'",
@@ -578,11 +591,12 @@ You can use the template below to populate the ANDS providerMetadata:
             ),
             responses = [
                     @ApiResponse(responseCode = "200",
+                            description = "Success",
                             content = [@Content(mediaType = 'application/json', schema = @Schema(implementation = Doi))],
                             headers = [
-                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "string"))
                             ]
                     ),
                     @ApiResponse(responseCode = '400', description = 'Attempting to update the file when there is already an existing file'),
@@ -633,6 +647,7 @@ You can use the template below to populate the ANDS providerMetadata:
             description = "Update the stored metadata or add a file to a DOI. Required scopes: 'doi/write'.",
             parameters = [
                     @Parameter(name = "id", in = PATH, required = true, description = 'Either the DOI (encoded or unencoded) or the UUID', schema = @Schema(implementation = String)),
+                    @Parameter(name = "Authorization", in = HEADER, required = true)
             ],
             requestBody = @RequestBody(
                     description = "The values to update the DOI with.  This will patch the existing DOI object with the provided values.  Only the following values are accepted: 'providerMetadata', 'customLandingPageUrl', 'title', 'authors', 'description', 'licence', 'applicationUrl','applicationMetadata'",
@@ -644,11 +659,12 @@ You can use the template below to populate the ANDS providerMetadata:
             ),
             responses = [
                     @ApiResponse(responseCode = "200",
+                            description = "Success",
                             content = [@Content(mediaType = 'application/json', schema = @Schema(implementation = Doi))],
                             headers = [
-                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "string")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "string"))
                             ]
                     ),
                     @ApiResponse(responseCode = '400', description = 'Attempting to update the file when there is already an existing file'),
