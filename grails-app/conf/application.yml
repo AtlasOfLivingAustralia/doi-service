@@ -235,12 +235,19 @@ elasticSearch:
       enabled: false
   datastoreImpl: hibernateDatastore
   client:
-    mode: transport
+    mode: rest
+    username:
+    password:
     hosts:
-      - {host: localhost, port: 9200}
-  cluster.name: elasticsearch
+      - {host: elasticsearch-doi, port: 9200}
+#  cluster.name: elasticsearch
   disableAutoIndex: false
   bulkIndexOnStartup: false
+
+management:
+  health:
+    elasticsearch:
+      enabled: false
 
 openapi:
     title: ALA DOI service

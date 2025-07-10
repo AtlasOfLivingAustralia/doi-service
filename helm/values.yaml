@@ -1,0 +1,277 @@
+# Default values for helm.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ""
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+secret:
+  name: "doi-config-secret"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  className: "alb"
+  certificateArn: ""
+  hostname: ""
+  tls: []
+  accessLogsBucket: ""
+  accessLogsPrefix: ""
+
+resources:
+  requests:
+    cpu: "1"          # 1 vCPU
+    memory: "4096Mi"  # 4GB
+  limits:
+    cpu: "1"          # 1 vCPU
+    memory: "4096Mi"  # 4GB
+
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /actuator/health
+    port: 8080
+    scheme: HTTP
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+startupProbe:
+  enabled: true
+  httpGet:
+    path: /actuator/health
+    port: 8080
+    scheme: HTTP
+  initialDelaySeconds: 90
+  periodSeconds: 5
+  timeoutSeconds: 15
+  successThreshold: 1
+  failureThreshold: 40 # 40 failures + initial delay of 90 seconds = 290 seconds
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /actuator/health
+    port: 8080
+    scheme: HTTP
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Additional volumes on the output Deployment definition.
+volumes: []
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: []
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+rds:
+  name: "mysql-rds"
+  externalName: "mysql-rds"
+
+# Config file properties
+config:
+  deployment_env: prod
+  security:
+    core:
+      roleAttribute: ala:role
+      authCookieName: ALA-Auth-Test
+      affiliationSurvey:
+        enabled: true
+    cookie:
+      enabled: true
+      domain: .ala.org.au
+    cas:
+      casServerName: https://auth-test.ala.org.au
+      casServerUrlPrefix: https://auth-test.ala.org.au/cas
+      casServerLoginUrl: https://auth-test.ala.org.au/cas/login
+      casServerLogoutUrl: https://auth-test.ala.org.au/cas/logout
+      appServerName: https://doi.test.ala.org.au
+      loginUrl: https://auth-test.ala.org.au/cas/login
+      logoutUrl: https://auth-test.ala.org.au/cas/logout
+    oidc:
+      clientId: client-id-1234567890
+      secret: secret
+      discoveryUri: https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_OOXU9GW39/.well-known/openid-configuration
+      scope: openid profile email ala/attrs ala/roles
+      alaUseridClaim: username
+      logoutAction: cognito
+      logoutUrl: https://auth-secure.auth.ap-southeast-2.amazoncognito.com/logout
+    jwt:
+      discoveryUri: https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_OOXU9GW39/.well-known/openid-configuration
+      clientId: client-id-1234567890
+      rolesFromAccessToken: true
+      userIdClaim: username
+      roleClaims: cognito:groups
+    apiKey:
+      enabled: true
+      auth:
+        serviceUrl: https://auth-test.ala.org.au/apikey/
+      check:
+        serviceUrl: https://auth-test.ala.org.au/apikey/ws/check?apikey=
+      userdetails:
+        serviceUrl: https://auth-test.ala.org.au/userdetails/
+  webservice:
+    jwt: true
+    jwtScopes: ala/internal users/read ala/attrs
+    clientId: client-id-1234567890
+    clientSecret: secret
+  userDetails:
+    url: https://api.test.ala.org.au/userdetails/cognito/
+  logging:
+    config: /data/doi-service/config/logback.xml
+  serverURL: https://doi.test.ala.org.au
+  serverName: https://doi.test.ala.org.au
+  server:
+    port: 8080
+    contextPath:
+  support:
+    email: support@ala.org.au
+  ands:
+    doi:
+      service:
+        url: https://services.ands.org.au/doi/1.1/
+      app:
+        id: 123456789
+      key: key
+      client:
+        id: 1
+  datacite:
+    doi:
+      service:
+        baseApiUrl: https://api.test.datacite.org/
+        user: user
+        password: password
+        prefix: 'prefix'
+        shoulder: ala
+  ala:
+    base:
+      url: https://www.ala.org.au
+  skin:
+    layout: ala-main
+    fluidLayout:
+    orgNameLong: Atlas of Living Australia
+    orgNameShort: ALA
+    favicon: https://www.ala.org.au/app/uploads/2019/01/cropped-favicon-32x32.png
+  headerAndFooter:
+    baseURL: https://www-test-2023.ala.org.au/commonui-bs3-2019
+    version: 2
+  doi:
+    service:
+      provider:
+        mapping:
+          ALA: 'DATACITE'
+    storage:
+      provider: S3
+    displayTemplates:
+      - "template"
+      - "biocache"
+      - "phylolink"
+      - "csdm"
+    resolverUrl: https://handle.stage.datacite.org/
+  grails:
+    serverURL: https://doi.test.ala.org.au
+    plugin:
+      awssdk:
+        region: ap-southeast-2
+        s3:
+          bucket: ala-doi
+          region: ap-southeast-2
+  file:
+    store: /data/doi-service/files
+  googleAnalyticsId: UA-4355440-4
+  dataSource:
+    url: jdbc:postgresql://localhost/doi?autoReconnect=true&connectTimeout=0&useUnicode=true&characterEncoding=UTF-8
+    username: doi
+    password: password
+  collections:
+    baseUrl: https://collections-test.ala.org.au
+  biocache:
+    wsUrl: https://api.test.ala.org.au/occurrences
+  swagger:
+    info:
+      description: "Generate DOIs for ALA applications"
+      version: "1.0"
+      title:  "ALA DOI service"
+      termsOfServices: "https://www.ala.org.au/who-we-are/terms-of-use/"
+      contact:
+        name:  "ALA Support"
+        url: "https://www.ala.org.au"
+        email: "support@ala.org.au"
+  openapi:
+    terms: https://www.ala.org.au/terms-of-use/
+    contact:
+      email: support@ala.org.au
+    components:
+      security:
+        oauth2:
+          baseUrl: https://auth-secure.auth.ap-southeast-2.amazoncognito.com/oauth2
+  userdetails:
+    url: https://api.test.ala.org.au/userdetails/cognito/
+  userdetailsWebUrl: https://userdetails.test.ala.org.au/
+  userdetailsApiUrl: https://api.test.ala.org.au/userdetails/cognito/
+  elasticsearch:
+    client:
+      mode: transport
+      host: "elasticsearch-doi"
+  podEnvironment: "production"
+  xmx: "3g"
+  xms: "3g"
+
+elasticsearch-doi:
+  deployment:
+    name: "elasticsearch-doi"
+  enabled: true
+  namespace: "elasticsearch"
+  service:
+    name: "elasticsearch-doi"
+    host: ""
+    port: 9200
+    username: ""
+    password: ""
+    authEnabled: false
+  persistence:
+    enabled: true
+    storageClass: "auto-ebs-sc"
+    accessMode: ReadWriteOnce
+    size: 10Gi

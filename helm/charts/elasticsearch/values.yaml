@@ -1,0 +1,29 @@
+replicaCount: 1
+image: "docker.elastic.co/elasticsearch/elasticsearch:7.17.3"
+namespace: "elasticsearch"
+resources:
+  requests:
+    cpu: "1"
+    memory: "2Gi"
+  limits:
+    cpu: "1"
+    memory: "2Gi"
+env:
+  - name: node.name
+    value: "elasticsearch"
+  - name: xpack.security.enabled
+    value: "false"
+  - name: discovery.type
+    value: "single-node"
+service:
+  name: elasticsearch-doi
+  host: elasticsearch
+  port: 9200
+deployment:
+  name: elasticsearch-doi
+
+persistence:
+  enabled: true
+  storageClass: "auto-ebs-sc"
+  accessMode: ReadWriteOnce
+  size: 10Gi

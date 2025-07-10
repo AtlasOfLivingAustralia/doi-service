@@ -1,0 +1,291 @@
+version: 0.2
+###
+# This build project exports any variables needed for later stages and actions,
+# builds the template configs used to launch the CloudFormation templates
+
+env:
+  shell: bash
+  git-credential-helper: yes
+  variables:
+    DEBIAN_FRONTEND: "noninteractive"
+  exported-variables:
+    - BASE_STACK_FILE_PFIX
+    - BASE_STACK_NAME
+    - CODEBUILD_BUILD_NUMBER
+    - CODEBUILD_BUILD_NUMBER
+    - COGNITO_STACK_NAME
+    - DB_READ_ENDPOINT
+    - DB_WRITE_ENDPOINT
+    - DOMAIN_NAME
+    - EKS_CLUSTER_NAME
+    - HELM_RELEASE_NAME
+    - CERTIFICATE_ARN
+    - HOSTED_ZONE
+    - PRODUCT_COMPONENT
+    - PRODUCT_NAME
+    - SECRET_NAME
+    - EKS_NAMESPACE
+    - ACCESS_LOGS_S3_BUCKET_NAME
+    - SLACK_ALERT_CHANNEL
+    - SLACK_DEPLOY_NOTIFICATION
+
+phases:
+
+  install:
+    commands:
+      - echo Running on $(lsb_release -d | cut -f2)
+      - echo aws-cli version $(aws --version)
+      - pip install jinja2
+      - export CUR_PIPELINE_FINGERPRINT=$(md5sum cicd/$PRODUCT_COMPONENT/pipeline/pipeline.yaml | awk '{print $1}')
+      - # This next bit checks if the running pipeline is out of sync with the pipeline in the
+      - # current code revision. If it is it re-launches itself! For a normal branch commit the
+      - # pipeline is set to autorun on update so it will restart automatically and launch the
+      - # latest revision on the branch. For a rollback we dont want it to restart automatically as
+      - # we need to run a specific commit, not the latest. In this case the pipeline is set NOT to
+      - # autorun on update. It will have to be manually started after the rollback pipeline
+      - # has finished launching
+      - | 
+          if [[ $PIPELINE_FINGERPRINT != $CUR_PIPELINE_FINGERPRINT ]]; then
+            echo existing pipeline is out of sync with current code revision, relaunching!
+            cd cicd/$PRODUCT_COMPONENT/pipeline/
+            ./deploy_pipeline.sh -e ${ENVIRONMENT:0:4} -b $SRC_BRANCH
+            # pipeline execution should now stop if this is a rollback, 
+            # or restart automatically if this a normal branch deploy
+            exit 1
+          else
+            echo existing pipeline is in sync with current code revision, proceeding with the deploy!
+          fi
+    finally:
+      - #echo This always runs even if the update or install command fails
+
+  pre_build:
+    commands:
+      - echo Entered the pre_build phase...
+      - echo source branch is $SRC_BRANCH
+      - echo clean branch is $CLEAN_BRANCH
+      - echo Environment is $ENVIRONMENT
+      - echo generating environment vars...
+      - cicd/gen_env_vars.py --env $ENVIRONMENT --clean-branch $CLEAN_BRANCH --conf cicd/$PRODUCT_COMPONENT/config.ini > env.txt
+      - echo loading config..
+      - set -a ; source env.txt ; set +a
+      # import stack export from the base cloudformation stack
+      - echo importing stack output...
+      - DB_READ_ENDPOINT=$(aws cloudformation describe-stacks --stack-name $DATABASE_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='ReadEndpoint'].OutputValue" --output text)
+      - DB_WRITE_ENDPOINT=$(aws cloudformation describe-stacks --stack-name $DATABASE_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='WriteEndpoint'].OutputValue" --output text)
+      - S3_BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name $BASE_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='DoiBucket'].OutputValue" --output text)
+      - ACCESS_LOGS_S3_BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name $BASE_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='LoadBalancerAccessLogsBucket'].OutputValue" --output text)
+      - SECRET_NAME=$(aws cloudformation describe-stacks --stack-name $BASE_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='DoiSecret'].OutputValue" --output text)
+      - echo DB_READ_ENDPOINT=$DB_READ_ENDPOINT
+      - echo DB_WRITE_ENDPOINT=$DB_WRITE_ENDPOINT
+      - echo S3_BUCKET_NAME=$S3_BUCKET_NAME
+      - echo ACCESS_LOGS_S3_BUCKET_NAME=$ACCESS_LOGS_S3_BUCKET_NAME
+      - echo SECRET_NAME=$SECRET_NAME
+      - echo BASE_STACK_NAME=$BASE_STACK_NAME
+      - export EKS_CLUSTER_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='$REGOLITH_STACK_NAME-ClusterName'].Value" --output text)
+      - echo EKS_CLUSTER_NAME=$EKS_CLUSTER_NAME
+      - DB_PASSWORD=$(aws secretsmanager get-secret-value --secret-id "$SECRET_NAME" --query 'SecretString' --output text | jq -r '.["db-password"]')
+      - GOOGLE_APIKEY=$(aws secretsmanager get-secret-value --secret-id "$SECRET_NAME" --query 'SecretString' --output text | jq -r '.["google-api-key"]')
+      - CAS_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id "$SECRET_NAME" --query 'SecretString' --output text | jq -r '.["cas-client-secret"]')
+      - CAS_S2S_SECRET=$(aws secretsmanager get-secret-value --secret-id "$SECRET_NAME" --query 'SecretString' --output text | jq -r '.["cas-s2s-client-secret"]')
+      - DATACITE_PASSWORD=$(aws secretsmanager get-secret-value --secret-id "$SECRET_NAME" --query 'SecretString' --output text | jq -r '.["datacite-password"]')
+      - DATACITE_USERNAME=$(aws secretsmanager get-secret-value --secret-id "$SECRET_NAME" --query 'SecretString' --output text | jq -r '.["datacite-username"]')
+      - ANDS_KEY=$(aws secretsmanager get-secret-value --secret-id "$SECRET_NAME" --query 'SecretString' --output text | jq -r '.["ands-key"]')
+    finally:
+      - #echo This always runs
+
+  build:
+    commands:
+      - echo Entered the build phase...
+      - DB_NAME=$PRODUCT_NAME$ENVIRONMENT
+      - DB_HOSTNAME=$([[ "$ENVIRONMENT" == "development" ]] && echo "$CLEAN_BRANCH" || echo "$ENVIRONMENT")
+      - |
+        USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name $COGNITO_STACK_NAME \
+          --query "Stacks[0].Outputs[?OutputKey=='UserPoolId'].OutputValue" --output text)
+      - |
+        CLIENT_ID=$(aws cloudformation describe-stacks --stack-name $BASE_STACK_NAME \
+          --query "Stacks[0].Outputs[?OutputKey=='DoiAppClient'].OutputValue" --output text)
+      - |
+        CLIENT_SECRET=$(aws cognito-idp describe-user-pool-client --user-pool-id $USER_POOL_ID \
+          --client-id $CLIENT_ID --query "UserPoolClient.ClientSecret" --output text)
+      - |
+        SERVER_TO_SERVER_CLIENT_ID=$(aws cloudformation describe-stacks --stack-name $BASE_STACK_NAME \
+          --query "Stacks[0].Outputs[?OutputKey=='DoiServerToServerAppClient'].OutputValue" --output text)
+      - |
+        SERVER_TO_SERVER_CLIENT_SECRET=$(aws cognito-idp describe-user-pool-client --user-pool-id $USER_POOL_ID \
+          --client-id $SERVER_TO_SERVER_CLIENT_ID --query "UserPoolClient.ClientSecret" --output text)
+      - |
+        if [[ "$ENVIRONMENT" == "production" ]]; then
+          CLIENT_ID=${CAS_CLIENT_ID}
+          CLIENT_SECRET=${CAS_CLIENT_SECRET}
+          SERVER_TO_SERVER_CLIENT_ID=${CAS_S2S_CLIENT_ID}
+          SERVER_TO_SERVER_CLIENT_SECRET=${CAS_S2S_SECRET}
+        fi
+      - |
+        echo "
+        elasticsearch-doi:
+          deployment:
+            name: elasticsearch-doi-${CLEAN_BRANCH}
+          service:
+            name: elasticsearch-doi-${CLEAN_BRANCH}
+        config:
+          deployment_env: ${DEPLOYMENT_ENV}
+          security:
+            core:
+              roleAttribute: ${SECURITY_CORE_ROLEATTRIBUTE}
+              authCookieName: ${SECURITY_CORE_AUTHCOOKIENAME}
+              affiliationSurvey:
+                enabled: ${SECURITY_CORE_AFFILIATIONSURVEY_ENABLED}
+            cookie:
+              enabled: ${SECURITY_COOKIE_ENABLED}
+              domain: ${SECURITY_COOKIE_DOMAIN}
+            cas:
+              casServerName: ${SECURITY_CAS_CASSERVERNAME}
+              casServerUrlPrefix: ${SECURITY_CAS_CASSERVERURLPREFIX}
+              casServerLoginUrl: ${SECURITY_CAS_CASSERVERLOGINURL}
+              casServerLogoutUrl: ${SECURITY_CAS_CASSERVERLOGOUTURL}
+              appServerName: https://${DOMAIN_NAME}
+              loginUrl: ${SECURITY_CAS_LOGINURL}
+              logoutUrl: ${SECURITY_CAS_LOGOUTURL}
+            oidc:
+              clientId: ${CLIENT_ID}
+              secret: ${CLIENT_SECRET}
+              discoveryUri: ${SECURITY_OIDC_DISCOVERYURI}
+              scope: ${SECURITY_OIDC_SCOPE}
+              alaUseridClaim: ${SECURITY_OIDC_ALAUSERIDCLAIM}
+              logoutAction: ${SECURITY_OIDC_LOGOUTACTION}
+              logoutUrl: ${SECURITY_OIDC_LOGOUTURL}
+            jwt:
+              discoveryUri: ${SECURITY_JWT_DISCOVERYURI}
+              clientId: ${CLIENT_ID}
+              rolesFromAccessToken: ${SECURITY_JWT_ROLESFROMACCESSTOKEN}
+              userIdClaim: ${SECURITY_JWT_USERIDCLAIM}
+              roleClaims: ${SECURITY_JWT_ROLECLAIMS}
+            apiKey:
+              enabled: ${SECURITY_APIKEY_ENABLED}
+              auth:
+                serviceUrl: ${SECURITY_APIKEY_AUTH_SERVICEURL}
+              check:
+                serviceUrl: ${SECURITY_APIKEY_CHECK_SERVICEURL}
+              userdetails:
+                serviceUrl: ${SECURITY_APIKEY_USERDETAILS_SERVICEURL}
+          webservice:
+            jwt: ${WEBSERVICE_JWT}
+            jwtScopes: ${WEBSERVICE_JWTSCOPES}
+            clientId: ${SERVER_TO_SERVER_CLIENT_ID}
+            clientSecret: ${SERVER_TO_SERVER_CLIENT_SECRET}
+          userDetails:
+            url: ${USERDETAILS_URL}
+          logging:
+            config: ${LOGGING_CONFIG}
+          serverURL: https://${DOMAIN_NAME}
+          serverName: https://${DOMAIN_NAME}
+          server:
+            port: ${SERVER_PORT}
+            contextPath: ${SERVER_CONTEXTPATH}
+          support:
+            email: ${SUPPORT_EMAIL}
+          ands:
+            doi:
+              service:
+                url: ${ANDS_DOI_SERVICE_URL}
+              app:
+                id: ${ANDS_DOI_APP_ID}
+              key: ${ANDS_KEY}
+              client:
+                id: ${ANDS_DOI_CLIENT_ID}
+          datacite:
+            doi:
+              service:
+                baseApiUrl: ${DATACITE_DOI_SERVICE_BASEAPIURL}
+                user: ${DATACITE_DOI_SERVICE_USER}
+                password: ${DATACITE_PASSWORD}
+                prefix: ${DATACITE_DOI_SERVICE_PREFIX}
+                shoulder: ${DATACITE_DOI_SERVICE_SHOULDER}
+          ala:
+            base:
+              url: ${ALA_BASE_URL}
+          skin:
+            layout: ${SKIN_LAYOUT}
+            fluidLayout: ${SKIN_FLUIDLAYOUT}
+            orgNameLong: ${SKIN_ORGNAMELONG}
+            orgNameShort: ${SKIN_ORGNAMESHORT}
+            favicon: ${SKIN_FAVICON}
+          headerAndFooter:
+            baseURL: ${HEADERANDFOOTER_BASEURL}
+            version: ${HEADERANDFOOTER_VERSION}
+          doi:
+            service:
+              provider:
+                mapping:
+                  ALA: ${DOI_SERVICE_PROVIDER_MAPPING}
+            storage:
+              provider: ${DOI_STORAGE_PROVIDER}
+            displayTemplates: [${DOI_DISPLAYTEMPLATES}]
+            resolverUrl: ${DOI_RESOLVERURL}
+          grails:
+            serverURL: https://${DOMAIN_NAME}
+            plugin:
+              awssdk:
+                region: ${GRAILS_PLUGIN_AWSSDK_REGION}
+                s3:
+                  bucket: ${S3_BUCKET_NAME}
+                  region: ${GRAILS_PLUGIN_AWSSDK_S3_REGION}
+          file:
+            store: ${FILE_STORE}
+          googleAnalyticsId: ${GOOGLEANALYTICSID}
+          dataSource:
+            url: jdbc:postgresql://${DB_WRITE_ENDPOINT}/${DB_NAME}?autoReconnect=true&connectTimeout=0&useUnicode=true&characterEncoding=UTF-8
+            username: ${DATASOURCE_USERNAME}
+            password: ${DB_PASSWORD}
+          collections:
+            baseUrl: ${COLLECTIONS_BASEURL}
+          biocache:
+            wsUrl: ${BIOCACHE_WSURL}
+          swagger:
+            info:
+              description: ${SWAGGER_INFO_DESCRIPTION}
+              version: ${SWAGGER_INFO_VERSION}
+              title: ${SWAGGER_INFO_TITLE}
+              termsOfServices: ${SWAGGER_INFO_TERMSOFSERVICES}
+              contact:
+                name: ${SWAGGER_INFO_CONTACT_NAME}
+                url: ${SWAGGER_INFO_CONTACT_URL}
+                email: ${SWAGGER_INFO_CONTACT_EMAIL}
+          openapi:
+            terms: ${OPENAPI_TERMS}
+            contact:
+              email: ${OPENAPI_CONTACT_EMAIL}
+            components:
+              security:
+                oauth2:
+                  baseUrl: ${OPENAPI_COMPONENTS_SECURITY_OAUTH2_BASEURL}
+          userdetails:
+            url: ${USERDETAILS_URL}
+          userdetailsWebUrl: ${USERDETAILS_WEBURL}
+          userdetailsApiUrl: ${USERDETAILS_APIURL}
+          elasticsearch:
+            client:
+                host: ${ELASTICSEARCH_HOST}
+        ingress:
+          accessLogsPrefix: "logs"
+          accessLogsBucket: "${ACCESS_LOGS_S3_BUCKET_NAME}"
+        resources:
+          requests:
+            cpu: ${CPU_REQUEST}
+            memory: ${MEMORY_REQUEST}
+          limits:
+            cpu: ${CPU_LIMIT}
+            memory: ${MEMORY_LIMIT}
+          " > helm-values.yaml
+
+    finally:
+      - #echo This always runs
+
+
+  post_build:
+    commands:
+      - #echo Entered the post_build phase...
+
+artifacts:
+  files:
+    - '**/*'

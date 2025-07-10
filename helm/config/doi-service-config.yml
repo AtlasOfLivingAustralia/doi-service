@@ -1,0 +1,163 @@
+# helm/config/doi-service-config.yml
+deployment_env: {{ .Values.config.deployment_env }}
+
+security:
+  core:
+    roleAttribute: {{ .Values.config.security.core.roleAttribute }}
+    authCookieName: {{ .Values.config.security.core.authCookieName }}
+    affiliation-survey:
+      enabled: {{ .Values.config.security.core.affiliationSurvey.enabled }}
+  cookie:
+    enabled: {{ .Values.config.security.cookie.enabled }}
+    domain: {{ .Values.config.security.cookie.domain }}
+  cas:
+    casServerName: {{ .Values.config.security.cas.casServerName }}
+    casServerUrlPrefix: {{ .Values.config.security.cas.casServerUrlPrefix }}
+    casServerLoginUrl: {{ .Values.config.security.cas.casServerLoginUrl }}
+    casServerLogoutUrl: {{ .Values.config.security.cas.casServerLogoutUrl }}
+    appServerName: {{ .Values.config.security.cas.appServerName }}
+    loginUrl: {{ .Values.config.security.cas.loginUrl }}
+    logoutUrl: {{ .Values.config.security.cas.logoutUrl }}
+  oidc:
+    clientId: {{ .Values.config.security.oidc.clientId }}
+    secret: {{ .Values.config.security.oidc.secret }}
+    discoveryUri: {{ .Values.config.security.oidc.discoveryUri }}
+    scope: {{ .Values.config.security.oidc.scope }}
+    alaUseridClaim: {{ .Values.config.security.oidc.alaUseridClaim }}
+    logoutAction: {{ .Values.config.security.oidc.logoutAction }}
+    logoutUrl: {{ .Values.config.security.oidc.logoutUrl }}
+  jwt:
+    discoveryUri: {{ .Values.config.security.jwt.discoveryUri }}
+    clientId: {{ .Values.config.security.jwt.clientId }}
+    rolesFromAccessToken: {{ .Values.config.security.jwt.rolesFromAccessToken }}
+    userIdClaim: {{ .Values.config.security.jwt.userIdClaim }}
+    roleClaims: {{ .Values.config.security.jwt.roleClaims }}
+  apiKey:
+    enabled: {{ .Values.config.security.apiKey.enabled }}
+    auth:
+      serviceUrl: {{ .Values.config.security.apiKey.auth.serviceUrl }}
+    check:
+      serviceUrl: {{ .Values.config.security.apiKey.check.serviceUrl }}
+    userdetails:
+      serviceUrl: {{ .Values.config.security.apiKey.userdetails.serviceUrl }}
+
+webservice:
+  jwt: {{ .Values.config.webservice.jwt }}
+  jwt-scopes: {{ .Values.config.webservice.jwtScopes }}
+  client-id: {{ .Values.config.webservice.clientId }}
+  client-secret: {{ .Values.config.webservice.clientSecret }}
+
+userDetails:
+  url: {{ .Values.config.userDetails.url }}
+
+logging:
+  config: {{ .Values.config.logging.config }}
+
+serverURL: {{ .Values.config.serverURL }}
+serverName: {{ .Values.config.serverName }}
+
+server:
+  port: {{ .Values.config.server.port }}
+  contextPath: {{ .Values.config.server.contextPath }}
+
+support:
+  email: {{ .Values.config.support.email }}
+
+ands:
+  doi:
+    service:
+      url: {{ .Values.config.ands.doi.service.url }}
+    app:
+      id: {{ .Values.config.ands.doi.app.id }}
+    key: {{ .Values.config.ands.doi.key }}
+    client:
+      id: {{ .Values.config.ands.doi.client.id }}
+
+datacite:
+  doi:
+    service:
+      baseApiUrl: {{ .Values.config.datacite.doi.service.baseApiUrl }}
+      user: {{ .Values.config.datacite.doi.service.user }}
+      password: {{ .Values.config.datacite.doi.service.password }}
+      prefix: {{ .Values.config.datacite.doi.service.prefix }}
+      shoulder: {{ .Values.config.datacite.doi.service.shoulder }}
+
+ala:
+  base:
+    url: {{ .Values.config.ala.base.url }}
+
+skin:
+  layout: {{ .Values.config.skin.layout }}
+  fluidLayout: {{ .Values.config.skin.fluidLayout }}
+  orgNameLong: {{ .Values.config.skin.orgNameLong }}
+  orgNameShort: {{ .Values.config.skin.orgNameShort }}
+  favicon: {{ .Values.config.skin.favicon }}
+
+headerAndFooter:
+  baseURL: {{ .Values.config.headerAndFooter.baseURL }}
+  version: {{ .Values.config.headerAndFooter.version }}
+
+doi:
+  service:
+    provider:
+      mapping: {{ .Values.config.doi.service.provider.mapping | toYaml | nindent 8 }}
+  storage:
+    provider: {{ .Values.config.doi.storage.provider }}
+  displayTemplates: {{ .Values.config.doi.displayTemplates | toYaml | nindent 4 }}
+  resolverUrl: {{ .Values.config.doi.resolverUrl }}
+
+grails:
+  serverURL: {{ .Values.config.grails.serverURL }}
+  plugin:
+    awssdk:
+      region: {{ .Values.config.grails.plugin.awssdk.region }}
+      s3:
+        bucket: {{ .Values.config.grails.plugin.awssdk.s3.bucket }}
+        region: {{ .Values.config.grails.plugin.awssdk.s3.region }}
+
+file:
+  store: {{ .Values.config.file.store }}
+
+googleAnalyticsId: {{ .Values.config.googleAnalyticsId }}
+
+dataSource:
+  url: {{ .Values.config.dataSource.url }}
+  username: {{ .Values.config.dataSource.username }}
+  password: {{ .Values.config.dataSource.password }}
+
+collections:
+  baseUrl: {{ .Values.config.collections.baseUrl }}
+
+biocache:
+  wsUrl: {{ .Values.config.biocache.wsUrl }}
+
+swagger:
+  info:
+    description: {{ .Values.config.swagger.info.description }}
+    version: {{ .Values.config.swagger.info.version }}
+    title: {{ .Values.config.swagger.info.title }}
+    termsOfServices: {{ .Values.config.swagger.info.termsOfServices }}
+    contact:
+      name: {{ .Values.config.swagger.info.contact.name }}
+      url: {{ .Values.config.swagger.info.contact.url }}
+      email: {{ .Values.config.swagger.info.contact.email }}
+
+openapi:
+  terms: {{ .Values.config.openapi.terms }}
+  contact:
+    email: {{ .Values.config.openapi.contact.email }}
+  components:
+    security:
+      oauth2:
+        baseUrl: {{ .Values.config.openapi.components.security.oauth2.baseUrl }}
+
+elasticSearch:
+  client:
+    mode: {{ .Values.config.elasticsearch.client.mode }}
+    hosts:
+      - {host: {{ .Values.config.elasticsearch.client.host }}, port: 9200}
+
+userdetails:
+  url: {{ .Values.config.userdetails.url }}
+userdetails.web.url: {{ .Values.config.userdetailsWebUrl }}
+userdetails.api.url: {{ .Values.config.userdetailsApiUrl }}

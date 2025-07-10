@@ -1,0 +1,4 @@
+apiVersion: v2
+name: elasticsearch-doi
+version: 1.0.0
+description: Elasticsearch subchart for the ALA Doi service
