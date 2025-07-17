@@ -234,7 +234,7 @@ phases:
             store: ${FILE_STORE}
           googleAnalyticsId: ${GOOGLEANALYTICSID}
           dataSource:
-            url: jdbc:postgresql://${DB_WRITE_ENDPOINT}/${DB_NAME}?autoReconnect=true&connectTimeout=0&useUnicode=true&characterEncoding=UTF-8
+            url: jdbc:postgresql://doi-pg-rds-${CLEAN_BRANCH}/${DB_NAME}?autoReconnect=true&connectTimeout=0&useUnicode=true&characterEncoding=UTF-8
             username: ${DATASOURCE_USERNAME}
             password: ${DB_PASSWORD}
           collections:

@@ -235,12 +235,10 @@ elasticSearch:
       enabled: false
   datastoreImpl: hibernateDatastore
   client:
-    mode: rest
-    username:
-    password:
+    mode: transport
     hosts:
       - {host: elasticsearch-doi, port: 9200}
-#  cluster.name: elasticsearch
+  #cluster.name: elasticsearch # not required if using the default cluster name
   disableAutoIndex: false
   bulkIndexOnStartup: false
 
