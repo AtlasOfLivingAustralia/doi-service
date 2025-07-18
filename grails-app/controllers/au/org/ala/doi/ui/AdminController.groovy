@@ -1,7 +1,6 @@
 package au.org.ala.doi.ui
 
 import au.org.ala.doi.DoiService
-import au.org.ala.doi.EmailService
 import au.org.ala.doi.storage.Storage
 import au.org.ala.doi.util.DoiProvider
 import au.org.ala.web.AuthService
@@ -18,7 +17,6 @@ class AdminController {
     Storage storage
     AuthService authService
     ElasticSearchService elasticSearchService
-    EmailService emailService
 
     def index() {
         // Only used to render admin main page

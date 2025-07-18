@@ -88,13 +88,13 @@ spec:
             secretName: {{ .Values.secret.name }}
         - name: logback-volume
           configMap:
-            name: logback-config
+            name: logback-config-doi
             optional: true
         - name: logback-groovy-volume
           configMap:
-            name: logback-groovy-config
+            name: logback-groovy-config-doi
             optional: true
         - name: system-message-volume
           configMap:
-            name: system-message-config
+            name: system-message-config-doi
             optional: true
