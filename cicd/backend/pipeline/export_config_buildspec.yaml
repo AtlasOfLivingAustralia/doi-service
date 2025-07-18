@@ -266,6 +266,10 @@ phases:
           elasticsearch:
             client:
                 host: ${ELASTICSEARCH_HOST}
+          mail:
+            enabled: ${MAIL_ENABLED}
+            ses:
+              enabled: ${MAIL_SES_ENABLED}
         ingress:
           accessLogsPrefix: "logs"
           accessLogsBucket: "${ACCESS_LOGS_S3_BUCKET_NAME}"

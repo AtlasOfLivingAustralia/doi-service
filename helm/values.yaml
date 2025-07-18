@@ -254,6 +254,10 @@ config:
     client:
       mode: transport
       host: "elasticsearch-doi"
+  mail:
+    enabled: true
+    ses:
+      enabled: true
   podEnvironment: "production"
   xmx: "3g"
   xms: "3g"

@@ -131,6 +131,11 @@ collections:
 biocache:
   wsUrl: {{ .Values.config.biocache.wsUrl }}
 
+mail:
+  enabled: {{ .Values.config.mail.enabled }}
+  ses:
+    enabled: {{ .Values.config.mail.enabled }}
+
 swagger:
   info:
     description: {{ .Values.config.swagger.info.description }}

@@ -1,11 +1,14 @@
 package au.org.ala.doi.ui
 
 import au.org.ala.doi.DoiService
+import au.org.ala.doi.EmailService
 import au.org.ala.doi.storage.Storage
 import au.org.ala.doi.util.DoiProvider
 import au.org.ala.web.AuthService
 import grails.converters.JSON
 import grails.plugins.elasticsearch.ElasticSearchService
+import org.springframework.validation.Errors
+import org.springframework.validation.MapBindingResult
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.multipart.MultipartHttpServletRequest
 
@@ -17,6 +20,7 @@ class AdminController {
     Storage storage
     AuthService authService
     ElasticSearchService elasticSearchService
+    EmailService emailService
 
     def index() {
         // Only used to render admin main page
@@ -127,5 +131,13 @@ class AdminController {
     def indexAll() {
         elasticSearchService.index()
         redirect action:'index'
+    }
+
+    def testEmail() {
+        def recipient = 'hamza.javed@csiro.au'
+        def noreply = grailsApplication.config.getProperty('support.noreply', String, 'no-reply@ala.org.au')
+        //create a dummy Errors object
+        Errors errors = new MapBindingResult([:], 'testDoi')
+        emailService.sendDoiFailureEmail(recipient, "doiservice <$noreply>", 'Test Doi', errors)
     }
 }

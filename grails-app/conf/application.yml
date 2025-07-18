@@ -1,4 +1,19 @@
 ---
+# mail.enabled: true will send email via a mail server depending on the mail.ses.enabled
+
+# Set mail.ses.enabled true will use AWS SES, it requires the AWS credentials to be set in the environment variables
+# Set false will use the default grails mail plugin, we need to config the mail server and port in grails.mail
+
+mail:
+  enabled: true
+  ses:
+    enabled: false
+  details:
+    sender: "no-reply@ala.org.au"
+    alertAddressTitle: "Doi failure alert"
+    infoSender: "no-reply@ala.org.au"
+    infoAddressTitle: "Atlas of Living Australia"
+    defaultResourceName: "Atlas of Living Australia"
 grails:
     profile: web
     codegen:
