@@ -184,6 +184,7 @@ phases:
             contextPath: ${SERVER_CONTEXTPATH}
           support:
             email: ${SUPPORT_EMAIL}
+            noreply: ${SUPPORT_NOREPLY}
           ands:
             doi:
               service:
@@ -270,6 +271,9 @@ phases:
             enabled: ${MAIL_ENABLED}
             ses:
               enabled: ${MAIL_SES_ENABLED}
+          podEnvironment: "${POD_ENVIRONMENT}"
+          xmx: "${HEAP_SIZE_INITIAL}"
+          xms: "${HEAP_SIZE_MAX}"
         ingress:
           accessLogsPrefix: "logs"
           accessLogsBucket: "${ACCESS_LOGS_S3_BUCKET_NAME}"

@@ -167,6 +167,7 @@ config:
     contextPath:
   support:
     email: support@ala.org.au
+    noreply: no-reply@ala.org.au
   ands:
     doi:
       service:
