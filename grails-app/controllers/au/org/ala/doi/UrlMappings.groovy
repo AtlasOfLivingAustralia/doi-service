@@ -58,7 +58,6 @@ class UrlMappings {
         get "/admin/mintDoi"(controller:'admin', action:"mintDoi")
         post "/admin/createDoi"(controller:'admin', action: "createDoi")
         get "/admin/indexAll"(controller:'admin', action:"indexAll")
-        get "/admin/testEmail"(controller:'admin', action:"testEmail")
 
         "500" (controller: 'error', action: 'error')
         "400" (controller: 'error', action: 'error')

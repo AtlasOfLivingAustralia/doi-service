@@ -27,7 +27,6 @@
 %{--            <li><g:link controller="alaAdmin" action="index">ALA Admin</g:link></li>--}%
             <li><g:link controller="admin" action="indexAll"><g:message code="doi.adminPage.index.all.dois" /></g:link></li>
             <li><g:link controller="openApi" action="index"><g:message code="doi.adminPage.api.documentation" /></g:link></li>
-            <li><g:link controller="admin" action="testEmail"><g:message code="doi.adminPage.test.email" /></g:link></li>
         </ul>
         <p>
             <span class="label label-default"><g:message code="doi.adminPage.using" args="[storageType]" /></span>

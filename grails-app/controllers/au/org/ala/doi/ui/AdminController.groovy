@@ -7,8 +7,6 @@ import au.org.ala.doi.util.DoiProvider
 import au.org.ala.web.AuthService
 import grails.converters.JSON
 import grails.plugins.elasticsearch.ElasticSearchService
-import org.springframework.validation.Errors
-import org.springframework.validation.MapBindingResult
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.multipart.MultipartHttpServletRequest
 
@@ -130,14 +128,6 @@ class AdminController {
      */
     def indexAll() {
         elasticSearchService.index()
-        redirect action:'index'
-    }
-
-    def testEmail() {
-        def recipient = 'hamza.javed@csiro.au'
-        def noreply = grailsApplication.config.getProperty('support.noreply', String, 'support@ala.org.au')
-        Errors errors = new MapBindingResult([:], 'testDoi')
-        emailService.sendDoiFailureEmail(recipient, "doiservice <$noreply>", 'Test Doi', errors)
         redirect action:'index'
     }
 }
