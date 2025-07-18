@@ -135,9 +135,9 @@ class AdminController {
 
     def testEmail() {
         def recipient = 'hamza.javed@csiro.au'
-        def noreply = grailsApplication.config.getProperty('support.noreply', String, 'no-reply@ala.org.au')
-        //create a dummy Errors object
+        def noreply = grailsApplication.config.getProperty('support.noreply', String, 'support@ala.org.au')
         Errors errors = new MapBindingResult([:], 'testDoi')
         emailService.sendDoiFailureEmail(recipient, "doiservice <$noreply>", 'Test Doi', errors)
+        redirect action:'index'
     }
 }
