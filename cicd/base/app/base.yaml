@@ -233,6 +233,32 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - s3:DeleteObject
+                  - s3:DeleteObjectVersion
+                  - s3:GetBucketLocation
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:PutObject
+                Resource:
+                  - !Sub arn:aws:s3:::${DoiBucket}
+                  - !Sub arn:aws:s3:::${DoiBucket}/*
+          PolicyName: doi-bucket
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ses:SendEmail
+                  - ses:SendTemplatedEmail
+                  - ses:SendRawEmail
+                Resource:
+                  - '*'
+          PolicyName: email
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
                   - elasticloadbalancing:DescribeListenerAttributes
                 Resource:
                   - '*'

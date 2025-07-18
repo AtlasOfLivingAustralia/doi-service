@@ -6,11 +6,13 @@ class EmailService {
     def grailsApplication
 
     void sendDoiFailureEmail(String recipient, String sender, String doi, Errors errors) {
+        log.warn("sendDoiFailureEmail called for DOI: ${doi} with errors: ${errors}")
         sendEmailView(recipient, sender, "Failure Alert - DOI ${doi}", [doi: doi, error: errors], '/emails/doi-failure')
     }
 
     void sendEmailView(String recipient, String sender, String subjectText, Map model, String htmlView, String textView = null) {
         log.debug("Sending email to ${recipient} with subject '${subjectText}'")
+        log.warn("Sending email to ${recipient} with subject '${subjectText}'")
 
         if (recipient) {
             sendMail {
