@@ -4,10 +4,10 @@ namespace: "elasticsearch"
 resources:
   requests:
     cpu: "1"
-    memory: "2Gi"
+    memory: "4Gi"
   limits:
     cpu: "1"
-    memory: "2Gi"
+    memory: "4Gi"
 env:
   - name: node.name
     value: "elasticsearch"
