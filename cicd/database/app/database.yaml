@@ -1,12 +1,14 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
-Description: 'An Aurora PostgreSQL RDS Instance with AutoScaling'
+Description: 'An Aurora RDS Instance with AutoScaling'
 
 Parameters:
   pAdminUser:
     Description: The username for the RDS admin user
     Type: String
-    Default: dbmaster
+  pBacktrackWindow:
+    Description: Backtrack window in seconds, only applicable for MySQL
+    Type: Number
   pBackupRetention:
     Description: Backup retention period in days
     Type: Number
@@ -28,12 +30,24 @@ Parameters:
     AllowedValues:
       - standard
       - advanced
+  pDbEngine:
+    Description: The database family. aurora-mysql or aurora-postgresql
+    Type: String
+    AllowedValues:
+      - aurora-mysql
+      - aurora-postgresql
+  pDbParamGrpFamily:
+    Description: The database parameter group family.
+    Type: String
+    AllowedValues:
+      - aurora-mysql8.0
+      - aurora-postgresql16
   pDbInstanceName:
     Description: The db instance name. This gets used as part of the hostname to connect to the db
     Type: String
   pDbVersion:
     Type: String
-    Description: The version of Aurora PostgreSQL for the RDS instance
+    Description: The version of the database for the RDS instance
   pDeletionProtection:
     Description: Enable deletion protection
     Type: String
@@ -41,10 +55,11 @@ Parameters:
       - true
       - false
   pEngineMode:
-    Description: Specify the EngineMode
+    Description: Specify the EngineMode. provisioned or serverlessv2
     Type: String
     AllowedValues:
       - provisioned
+      - serverlessv2
     Default: provisioned
   pEnhancedMonitoring:
     Description: enhanced monitoring interval in seconds, 0 to disable
@@ -94,6 +109,12 @@ Conditions:
   IsProd: !Equals
     - !Ref pEnvironment
     - production
+  IsMysql: !Equals
+    - !Ref pDbEngine
+    - aurora-mysql
+  IsPostgres: !Equals
+    - !Ref pDbEngine
+    - aurora-postgresql
   RestoreFromSnapshot: !Not
     - !Equals
       - !Ref pRdsSnapshotRestore
@@ -104,6 +125,9 @@ Conditions:
   DatabaseInsights: !Equals
     - !Ref pDatabaseInsightsMode
     - advanced
+  IsServerlessV2: !Equals
+    - !Ref pEngineMode
+    - serverlessv2
   CreateReplica: !Equals
     - !Ref pCreateReplica
     - true
@@ -125,11 +149,17 @@ Conditions:
 
 Resources:
 
+  DbParamGrp:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: !Sub ${pProductName} DB instance parameter grp
+      Family: !Ref pDbParamGrpFamily
+
   ClusterParamGrp:
     Type: AWS::RDS::DBClusterParameterGroup
     Properties:
-      Description: Doi PostgreSQL cluster parameter group
-      Family: aurora-postgresql15
+      Description: !Sub ${pProductName} cluster param group
+      Family: !Ref pDbParamGrpFamily
       Parameters:
         timezone: Australia/Sydney
       Tags:
@@ -154,14 +184,14 @@ Resources:
           Fn::Sub: ${pVpcStackName}-Vpc
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 5432
-          ToPort: 5432
+          FromPort: !If [ IsMysql, 3306, 5432 ]
+          ToPort: !If [ IsMysql, 3306, 5432 ]
           CidrIp:
             Fn::ImportValue:
               Fn::Sub: ${pVpcStackName}-VpcCidr
       Tags:
         - Key: Name
-          Value: doi RDS SG
+          Value: !Sub ${pProductName} RDS SG
 
   EnhancedMonitoringRole:
     Type: AWS::IAM::Role
@@ -182,8 +212,10 @@ Resources:
     UpdateReplacePolicy: !If [ IsProd, "Snapshot", "Delete" ]
     DeletionPolicy: !If [ IsProd, "Snapshot", "Delete" ]
     DependsOn:
+      - SlowQueryLogGroup
       - ErrorLogGroup
     Properties:
+      BacktrackWindow: !If [ IsMysql, !Ref pBacktrackWindow, !Ref AWS::NoValue ]
       BackupRetentionPeriod: !Ref pBackupRetention
       CopyTagsToSnapshot: true
       DatabaseInsightsMode: !Ref pDatabaseInsightsMode
@@ -192,9 +224,12 @@ Resources:
       DBClusterParameterGroupName: !Ref ClusterParamGrp
       DBSubnetGroupName: !Ref DbSubnetGrp
       DeletionProtection: !Ref pDeletionProtection
-      EnableCloudwatchLogsExports: !If [ ExportLogs, ['error'], !Ref AWS::NoValue]
-      Engine: aurora-postgresql
-      EngineMode: provisioned
+      EnableCloudwatchLogsExports: !If
+        - ExportLogs
+        - !If [ IsMysql, [ error, slowquery ], [ postgresql ] ]
+        - !Ref AWS::NoValue
+      Engine: !Ref pDbEngine
+      EngineMode: !If [IsServerlessV2, !Ref AWS::NoValue, provisioned]
       EngineVersion: !Ref pDbVersion
       MasterUsername: !Ref pAdminUser
       MasterUserPassword: !Sub '{{resolve:secretsmanager:${pSecretName}:SecretString:db-password}}'
@@ -208,15 +243,20 @@ Resources:
         - DatabaseInsights
         - 465
         - 7
-      Port: 5432
+      Port: !If [ IsMysql, 3306, 5432 ]
       PreferredBackupWindow: 16:00-17:00
       PreferredMaintenanceWindow: tue:17:00-tue:19:00
+      ServerlessV2ScalingConfiguration: !If
+        - IsServerlessV2
+        - MinCapacity: 0
+          MaxCapacity: 10
+        - !Ref "AWS::NoValue"
       SnapshotIdentifier: !If [ RestoreFromSnapshot, !Ref pRdsSnapshotRestore, !Ref AWS::NoValue ]
       StorageEncrypted: true
       Tags:
         - Key: Name
           Value: !Sub
-            - doi-db-${ResourceName}
+            - ${pProductName}-db-${ResourceName}
             - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
       VpcSecurityGroupIds:
         - !Ref DbSecurityGrp
@@ -226,10 +266,12 @@ Resources:
     Properties:
       AllowMajorVersionUpgrade: false
       AutoMinorVersionUpgrade: true
-      DBInstanceClass: !Ref pInstanceClass
+      DBInstanceClass: !If [ IsProvisioned, !Ref pInstanceClass, db.serverless ]
       DBInstanceIdentifier: !Sub ${pDbInstanceName}-primary
       DBClusterIdentifier: !Ref DbCluster
-      Engine: aurora-postgresql
+      #DBParameterGroupName: !Ref DbParamGrp # Uncomment to use a custom parameter group
+      DBSubnetGroupName: !Ref DbSubnetGrp
+      Engine: !Ref pDbEngine
       PubliclyAccessible: false
       PromotionTier: 1
       EnablePerformanceInsights: !Ref pPerformanceInsights
@@ -247,11 +289,13 @@ Resources:
     Properties:
       AllowMajorVersionUpgrade: false
       AutoMinorVersionUpgrade: true
-      DBInstanceClass: !Ref pInstanceClass
+      DBInstanceClass: !If [ IsProvisioned, !Ref pInstanceClass, db.serverless ]
       DBInstanceIdentifier: !Sub ${pDbInstanceName}-replica
+      #DBParameterGroupName: !Ref DbParamGrp # Uncomment to use a custom parameter group
+      DBSubnetGroupName: !Ref DbSubnetGrp
+      Engine: !Ref pDbEngine
       DBClusterIdentifier: !Ref DbCluster
       PubliclyAccessible: false
-      Engine: aurora-postgresql
       PromotionTier: 2
       EnablePerformanceInsights: !Ref pPerformanceInsights
       Tags:
@@ -277,7 +321,7 @@ Resources:
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
     Condition: HorizontalScaling
     Properties:
-      PolicyName: Doi Aurora scaling policy
+      PolicyName: !Sub ${pProductName} Aurora scaling policy
       PolicyType: TargetTrackingScaling
       ScalingTargetId: !Ref RdsScalableTarget
       TargetTrackingScalingPolicyConfiguration:
@@ -291,6 +335,12 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/rds/cluster/${pDbInstanceName}-cluster/error
+      RetentionInDays: 30
+
+  SlowQueryLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/rds/cluster/${pDbInstanceName}-cluster/slowquery
       RetentionInDays: 30
 
 

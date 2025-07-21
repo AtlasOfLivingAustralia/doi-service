@@ -2,7 +2,7 @@
 set -ueo pipefail
 
 ###
-# Deploy the codepipeline for the doi app
+# Deploy the codepipeline for the doi database
 # You must have AWS CLI authentication for this to run. 
 
 usage() {
