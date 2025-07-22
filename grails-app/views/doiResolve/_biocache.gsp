@@ -11,7 +11,7 @@
 <div class="container">
 <div class="row">
     <div class="col-md-12" id="doiTitle">
-        <h2><a href="https://doi.org/${doi.doi}" type="button" class="doi"><span><g:message code="biocache.doi.title" /></span><span>${doi.doi}</span></a></h2>
+        <h2><a href="${grailsApplication.config.doi.resolverUrl}${doi.doi}" type="button" class="doi"><span><g:message code="biocache.doi.title" /></span><span>${doi.doi}</span></a></h2>
         <h3><g:message code="doi.page.download.subtitle" args="[g.formatDate(date:doi.dateCreated, format:message(code:'doi.page.date.format'))]"/></h3>
     </div>
     <div class="col-md-12 text-right">

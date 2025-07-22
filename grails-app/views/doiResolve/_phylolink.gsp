@@ -18,7 +18,7 @@
 
 <div class="col-sm-12 col-md-9 col-lg-9">
     <div class="col-md-12" id="doiTitle">
-        <h2><a href="https://doi.org/${doi.doi}" type="button" class="doi"><span>DOI</span><span>${doi.doi}</span></a></h2>
+        <h2><a href="${grailsApplication.config.doi.resolverUrl}${doi.doi}" type="button" class="doi"><span>DOI</span><span>${doi.doi}</span></a></h2>
 		<h3 class="heading-medium ${doi.active? '': 'text-muted'}">${doi.title}
 			<g:if test="${!doi.active}">
 				<small class="badge badge-secondary"><g:message code="doi.inactive"/></small>
