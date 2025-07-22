@@ -30,9 +30,9 @@
 		</div>
 		<div class="row">
 			<div class="col-sm-12">
-				<p>The file <code>${doi.filename}</code> for <a href="https://doi.org/${doi.doi}" type="button" class="doi doi-sm"><span>DOI</span><span>${doi.doi}</a> contains sensitive data and you don't have the required roles to grant you access to it.</p>
+				<p>The file <code>${doi.filename}</code> for <a href="${grailsApplication.config.doi.resolverUrl}${doi.doi}" type="button" class="doi doi-sm"><span>DOI</span><span>${doi.doi}</a> contains sensitive data and you don't have the required roles to grant you access to it.</p>
 
-				<p>Please <a href="${grailsApplication.config.ala.contact.form}"> contact us </a>, quoting <a href="https://doi.org/${doi.doi}" type="button" class="doi doi-sm"><span>DOI</span><span>${doi.doi}</a>,  to request access to the file.</p>
+				<p>Please <a href="${grailsApplication.config.ala.contact.form}"> contact us </a>, quoting <a href="${grailsApplication.config.doi.resolverUrl}${doi.doi}" type="button" class="doi doi-sm"><span>DOI</span><span>${doi.doi}</a>,  to request access to the file.</p>
 
 			</div>
 		</div>

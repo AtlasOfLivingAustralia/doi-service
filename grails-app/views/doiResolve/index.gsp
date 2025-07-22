@@ -98,7 +98,7 @@
                                                     </g:if>
                                                 </h4>
 
-                                                <div class="padding-bottom-10"><a href="https://doi.org/${doi.doi}" type="button" class="doi doi-sm"><span><g:message code="index.item.doi" /></span><span>${doi.doi}</span></a></div>
+                                                <div class="padding-bottom-10"><a href="${grailsApplication.config.doi.resolverUrl}${doi.doi}" type="button" class="doi doi-sm"><span><g:message code="index.item.doi" /></span><span>${doi.doi}</span></a></div>
                                                 <div class="padding-bottom-10"><strong><g:message code="index.item.created" /></strong> <g:formatDate date="${doi.dateMinted}" format="${message(code:'doi.page.date.format')}"/>&nbsp;<g:formatDate date="${doi.dateMinted}" format="${message(code:'doi.page.time.format')}" /></div>
                                                 <div class="padding-bottom-10"><strong><g:message code="index.item.author" /></strong> ${doi.authors}</div>
                                                 <div class="padding-bottom-20">
