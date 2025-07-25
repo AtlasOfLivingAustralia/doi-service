@@ -127,6 +127,7 @@ phases:
             name: elasticsearch-doi-${CLEAN_BRANCH}
           service:
             name: elasticsearch-doi-${CLEAN_BRANCH}
+        environment: ${ENVIRONMENT}
         config:
           deployment_env: ${DEPLOYMENT_ENV}
           security:
