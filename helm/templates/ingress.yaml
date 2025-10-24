@@ -25,6 +25,39 @@ metadata:
       access_logs.s3.bucket={{ .Values.ingress.accessLogsBucket }},
       access_logs.s3.prefix={{ .Values.ingress.accessLogsPrefix }}
     external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingress.hostname }}
+    {{- if eq .Values.environment "testing" }}
+    {{- if .Values.ingress.cors.enabled }}
+    alb.ingress.kubernetes.io/listener-attributes.HTTP-80: >
+      routing.http.response.access_control_allow_origin.header_value={{ .Values.ingress.cors.allowOrigin }},
+      routing.http.response.access_control_allow_methods.header_value={{ .Values.ingress.cors.allowMethods }},
+      routing.http.response.access_control_allow_headers.header_value={{ .Values.ingress.cors.allowHeaders }},
+      routing.http.response.access_control_expose_headers.header_value={{ .Values.ingress.cors.exposeHeaders }},
+      routing.http.response.access_control_max_age.header_value={{ .Values.ingress.cors.maxAge }},
+      routing.http.response.access_control_allow_credentials.header_value={{ .Values.ingress.cors.allowCredentials }}
+    alb.ingress.kubernetes.io/listener-attributes.HTTPS-443: >
+      routing.http.response.access_control_allow_origin.header_value={{ .Values.ingress.cors.allowOrigin }},
+      routing.http.response.access_control_allow_methods.header_value={{ .Values.ingress.cors.allowMethods }},
+      routing.http.response.access_control_allow_headers.header_value={{ .Values.ingress.cors.allowHeaders }},
+      routing.http.response.access_control_expose_headers.header_value={{ .Values.ingress.cors.exposeHeaders }},
+      routing.http.response.access_control_max_age.header_value={{ .Values.ingress.cors.maxAge }},
+      routing.http.response.access_control_allow_credentials.header_value={{ .Values.ingress.cors.allowCredentials }}
+    {{- end }}
+    alb.ingress.kubernetes.io/actions.cors-options: >
+      {"Type":"fixed-response",
+       "FixedResponseConfig":{
+         "StatusCode":"200",
+         "ContentType":"text/plain",
+         "MessageBody":"OK",
+         "Headers":[
+           {"Key":"Access-Control-Allow-Origin","Value":"http://localhost:3000"},
+           {"Key":"Access-Control-Allow-Methods","Value":"GET,POST,PUT,DELETE,OPTIONS"},
+           {"Key":"Access-Control-Allow-Headers","Value":"Authorization,Content-Type,X-Requested-With"},
+           {"Key":"Access-Control-Allow-Credentials","Value":"true"},
+           {"Key":"Access-Control-Expose-Headers","Value":"X-Total-Count"},
+           {"Key":"Access-Control-Max-Age","Value":"1728000"}
+         ]
+       }}
+    {{- end }}
     {{- include "ala-doi.labels" . | nindent 4 }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}

@@ -41,6 +41,14 @@ ingress:
   tls: []
   accessLogsBucket: ""
   accessLogsPrefix: ""
+  cors:
+    enabled: false
+    allowOrigin: "http://localhost:3000"
+    allowMethods: "GET, POST, PUT, DELETE, OPTIONS, HEAD"
+    allowHeaders: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+    exposeHeaders: "Content-Length,Content-Range"
+    maxAge: "3600"
+    allowCredentials: "true"
 
 tags:
   branch: ""
