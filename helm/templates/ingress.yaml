@@ -26,7 +26,6 @@ metadata:
       access_logs.s3.prefix={{ .Values.ingress.accessLogsPrefix }}
     external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingress.hostname }}
     {{- if eq .Values.environment "testing" }}
-    {{- if .Values.ingress.cors.enabled }}
     alb.ingress.kubernetes.io/listener-attributes.HTTP-80: >
       routing.http.response.access_control_allow_origin.header_value={{ .Values.ingress.cors.allowOrigin }},
       routing.http.response.access_control_allow_methods.header_value={{ .Values.ingress.cors.allowMethods }},
@@ -41,7 +40,6 @@ metadata:
       routing.http.response.access_control_expose_headers.header_value={{ .Values.ingress.cors.exposeHeaders }},
       routing.http.response.access_control_max_age.header_value={{ .Values.ingress.cors.maxAge }},
       routing.http.response.access_control_allow_credentials.header_value={{ .Values.ingress.cors.allowCredentials }}
-    {{- end }}
     alb.ingress.kubernetes.io/actions.cors-options: >
       {"Type":"fixed-response",
        "FixedResponseConfig":{
